@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 void main() {
   runApp(const MyApp());
@@ -11,7 +12,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Coordinator',
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -31,8 +32,29 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'Coordinator panel'),
     );
+  }
+}
+
+Future<String> fetchRaces() async {
+  final http.Response response = await http
+      .get(Uri.http('localhost:8000', 'api/coordinator/race'), headers: {
+    "Access-Control-Allow-Origin": "*",
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  });
+
+  if (response.statusCode == 200) {
+    // If the server did return a 200 OK response,
+    // then parse the JSON.
+    // return Album.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+    return response.body;
+  } else {
+    // If the server did not return a 200 OK response,
+    // then throw an exception.
+    throw Exception(
+        'Failed to fetch races with ${response.statusCode}: ${response.body}');
   }
 }
 
@@ -55,18 +77,13 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  late Future<String> futureRacesJsonString = Future(() => "Not loaded");
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
+  // @override
+  // void didChangeDependencies() {
+  //   super.didChangeDependencies();
+  //   futureRacesJsonString = fetchRaces();
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -81,7 +98,10 @@ class _MyHomePageState extends State<MyHomePage> {
         // TRY THIS: Try changing the color here to a specific color (to
         // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
         // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        backgroundColor: Theme
+            .of(context)
+            .colorScheme
+            .inversePrimary,
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
@@ -108,17 +128,30 @@ class _MyHomePageState extends State<MyHomePage> {
             const Text(
               'You have pushed the button this many times:',
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+            ElevatedButton(
+              style: const ButtonStyle(),
+              onPressed: () {
+                setState(() {
+                  futureRacesJsonString = fetchRaces();
+                });
+              },
+              child: const Text('Press here'),
+            ),
+            FutureBuilder<String>(
+              future: futureRacesJsonString,
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  return Text(snapshot.data!);
+                } else if (snapshot.hasError) {
+                  return Text('${snapshot.error}');
+                }
+
+                // By default, show a loading spinner.
+                return const CircularProgressIndicator();
+              },
             ),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
