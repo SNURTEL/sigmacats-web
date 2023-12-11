@@ -47,7 +47,13 @@ class _RaceListState extends State<RaceList> {
 
   Future<List<RaceListEntry>> fetchRaceList() async {
     final response =
-        await http.get(Uri.parse('http://localhost/api/coordinator/race/'));
+    // WHY DOES THIS EVEN WORK???????? HELP ???????? 127.0.0.11 IS DOCKER'S DNS, NOT BACKEND!!!!!!!
+        await http.get(Uri.parse('http://127.0.0.11:8000/api/coordinator/race/'),
+//         await http.get(Uri.parse('http://fastapi-backend:8000/api/coordinator/race/'),
+//         await http.get(Uri.parse('http://172.21.0.7:8000/api/coordinator/race/'),
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+        });
 
     if (response.statusCode == 200) {
       // If the server returns a 200 OK response, parse the races from the response
