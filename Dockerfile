@@ -36,12 +36,15 @@ RUN flutter clean
 RUN flutter pub get
 RUN flutter build web
 
+COPY /app/.env $APP
+
 
 # use nginx to deploy
 FROM nginx:1.25.2-alpine
 
 # copy the info of the builded web app to nginx
 COPY --from=build-env /code/build/web /usr/share/nginx/html
+COPY --from=build-env /code/.env /usr/share/nginx/html
 
 # Expose and run nginx
 EXPOSE 80
