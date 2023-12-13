@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 import 'package:file_picker/_internal/file_picker_web.dart';
 import 'package:file_picker/file_picker.dart';
@@ -30,14 +31,25 @@ class _CreateRacePageState extends State<CreateRacePage> {
           Text("Start with a GPX file"),
           ElevatedButton(
             onPressed: () async {
-              var picked = await FilePickerWeb.platform.pickFiles();
+              FilePickerResult? picked =
+                  await FilePickerWeb.platform.pickFiles();
 
-              if (picked != null) {
-                print(picked.files.first.name);
+              if (picked == null) {
+                print("No file picked");
+                return;
               }
-            },
-            child: const Text('Select file'),)
 
+              print(picked.files.first.name);
+              var bytes = picked.files.single.bytes!;
+              var request = http.MultipartRequest("POST", Uri.parse("${settings.apiBaseUrl}/api/coordinator/race/create"));
+              request.files.add(http.MultipartFile.fromBytes('fileobj', bytes));
+              // request.
+              request.send().then((response) {
+                if (response.statusCode == 200) print("Uploaded!");
+              });
+            },
+            child: const Text('Select file'),
+          )
         ],
       ),
     )));
