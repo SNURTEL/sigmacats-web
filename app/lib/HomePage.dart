@@ -63,6 +63,7 @@ class _HomePageState extends State<HomePage> {
                       return
                         Column(
                           children: [
+                            Visibility(visible: index == 0, child: SizedBox(height: 96,)),
                             Card(
                               margin: const EdgeInsets.all(5.0),
                               child: Column(
@@ -90,6 +91,7 @@ class _HomePageState extends State<HomePage> {
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Text(
+                                          // FIXME order by most recent in backend
                                           snapshot.data![index].name,
                                           style: TextStyle(
                                             fontSize: 20.0,
@@ -99,7 +101,8 @@ class _HomePageState extends State<HomePage> {
                                         ),
                                         SizedBox(height: 5.0),
                                         Text(
-                                          snapshot.data![index].meetup_timestamp
+                                          // FIXME order by most recent in backend
+                                          snapshot.data![index].start_timestamp
                                               .toString(),
                                           style: TextStyle(
                                             fontSize: 16.0,
@@ -122,6 +125,8 @@ class _HomePageState extends State<HomePage> {
             ),
           );
         } else if (snapshot.hasError) {
+          print(snapshot.error);
+          print(snapshot.stackTrace);
           content = Text('${snapshot.error}');
         } else {
           // By default, show a loading spinner.

@@ -19,7 +19,7 @@ class _AppScaffoldState extends State<AppScaffold> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Hello, <username>!'),
+        title: Text('Witaj, Coordinator1!'),
       ),
       body: Row(
         children: [
@@ -41,15 +41,15 @@ class _AppScaffoldState extends State<AppScaffold> {
             destinations: [
               NavigationRailDestination(
                 icon: Icon(Icons.home),
-                label: Text('Home'),
+                label: Text('Strona główna'),
               ),
               NavigationRailDestination(
-                icon: Icon(Icons.search),
-                label: Text('Search'),
+                icon: Icon(Icons.directions_bike),
+                label: Text('Nowy wyścig'),
               ),
               NavigationRailDestination(
                 icon: Icon(Icons.person),
-                label: Text('Profile'),
+                label: Text('Profil'),
               ),
             ],
           ),

@@ -129,7 +129,7 @@ class RaceListEntry {
       name: map['name'] as String,
       description: map['description'] as String,
       no_laps: map['no_laps'] as int,
-      meetup_timestamp: DateTime.parse(map['meetup_timestamp']),
+      meetup_timestamp: map['meetup_timestamp'] != null ? DateTime.parse(map['meetup_timestamp']) : null,
       start_timestamp: DateTime.parse(map['start_timestamp']),
       end_timestamp: DateTime.parse(map['end_timestamp']),
       event_graphic_file: map['event_graphic_file'] as String,

@@ -5,6 +5,8 @@ import 'package:sizer/sizer.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
+import 'package:intl/date_symbol_data_local.dart';
+
 
 import 'settings.dart' as settings;
 import 'package:app/HomePage.dart';
@@ -15,6 +17,7 @@ void main() async {
       dotenv.env["FLUTTER_FASTAPI_HOST_URL"] ?? "http://127.0.0.11:8000";
 
   usePathUrlStrategy();
+  initializeDateFormatting('pl_PL', null);
   runApp(App());
 }
 
