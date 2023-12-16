@@ -31,6 +31,9 @@ class _CreateRacePageState extends State<CreateRacePage> {
   final requirementsEditingController = TextEditingController();
   final entryFeeEditingController = TextEditingController();
   final mapController = MapController();
+  final placeToPointsMappingKeyController = TextEditingController();
+  final placeToPointsMappingValueController = TextEditingController();
+  final lastPlacePointsController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
   String? uploadedGpxFilePath;
@@ -50,6 +53,17 @@ class _CreateRacePageState extends State<CreateRacePage> {
       .add(Duration(hours: 1));
 
   var noLaps = 1;
+
+  final LAST_PLACE = 10000;
+  late Map<int, int> placeToPointsMapping;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    placeToPointsMapping = {LAST_PLACE: 0};
+    lastPlacePointsController.text = placeToPointsMapping[LAST_PLACE].toString();
+  }
 
   var isAddEntryFeeChecked = false;
   var isAddMeetupHourChecked = false;
@@ -74,6 +88,9 @@ class _CreateRacePageState extends State<CreateRacePage> {
     requirementsEditingController.dispose();
     entryFeeEditingController.dispose();
     mapController.dispose();
+    placeToPointsMappingKeyController.dispose();
+    placeToPointsMappingValueController.dispose();
+    lastPlacePointsController.dispose();
     super.dispose();
   }
 
@@ -302,16 +319,24 @@ class _CreateRacePageState extends State<CreateRacePage> {
                             ),
                             child: ColorFiltered(
                               colorFilter: ColorFilter.mode(
-                                uploadedGpxObject == null ? Theme.of(context).colorScheme.surface.withOpacity(0.62) : Colors.transparent,
+                                uploadedGpxObject == null
+                                    ? Theme.of(context)
+                                        .colorScheme
+                                        .surface
+                                        .withOpacity(0.62)
+                                    : Colors.transparent,
                                 BlendMode.srcOver,
                               ),
                               child: FlutterMap(
                                 mapController: mapController,
                                 options: MapOptions(
-                                  initialCenter: LatLng(52.23202828872916, 21.006132649819673),  // Warsaw
-                                  initialZoom: 13,
-                                  interactionOptions: InteractionOptions(flags: uploadedGpxObject != null ? InteractiveFlag.all : InteractiveFlag.none)
-                                ),
+                                    initialCenter: LatLng(52.23202828872916,
+                                        21.006132649819673), // Warsaw
+                                    initialZoom: 13,
+                                    interactionOptions: InteractionOptions(
+                                        flags: uploadedGpxObject != null
+                                            ? InteractiveFlag.all
+                                            : InteractiveFlag.none)),
                                 children: [
                                   openStreetMapTileLayer,
                                   PolylineLayer(
@@ -323,13 +348,14 @@ class _CreateRacePageState extends State<CreateRacePage> {
                                                 .where((element) =>
                                                     element.lat != null &&
                                                     element.lon != null)
-                                                .map(
-                                                    (e) => LatLng(e.lat!, e.lon!))
+                                                .map((e) =>
+                                                    LatLng(e.lat!, e.lon!))
                                                 .toList()
                                             : [],
                                         strokeWidth: 3,
-                                        color:
-                                            Theme.of(context).colorScheme.primary,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary,
                                       ),
                                     ],
                                   ),
@@ -665,6 +691,145 @@ class _CreateRacePageState extends State<CreateRacePage> {
                                   ),
                                 ],
                               ),
+                            ),
+                          ]),
+                    ),
+                  ),
+                  SizedBox(height: 24.0),
+                  Align(
+                    alignment: Alignment.topLeft,
+                    child: Text(
+                      "Punkty",
+                      style: Theme.of(context).textTheme.headlineLarge,
+                    ),
+                  ),
+                  SizedBox(height: 24.0),
+                  Card(
+                    child: Padding(
+                      padding: EdgeInsets.all(16.0),
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: placeToPointsMapping.length-1,
+                                itemBuilder: (context, index) {
+                                  var keysSorted =
+                                      placeToPointsMapping.keys.where((element) => element != LAST_PLACE).toList();
+                                  keysSorted.sort();
+                                  var key = keysSorted[index];
+                                  return IntrinsicHeight(
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Expanded(child: Text(
+                                          (index == placeToPointsMapping.length -1 || key == 1 ? "" : "≤ ") + key.toString(),
+                                          textAlign: TextAlign.end,
+                                        )),
+                                        VerticalDivider(
+                                          width: 20,
+                                          indent: 5,
+                                          endIndent: 5,
+                                        ),
+                                        Expanded(
+                                          child: Text(
+                                              placeToPointsMapping[key].toString() + " pkt."),
+                                        ),
+                                        SizedBox(width: 32),
+                                        IconButton(
+                                            onPressed: () {
+                                              setState(() {
+                                                placeToPointsMapping.remove(key);
+                                              });
+                                            },
+                                            icon:
+                                                Icon(Icons.remove_circle_outline))
+                                      ],
+                                    ),
+                                  );
+                                }),
+                            IntrinsicHeight(
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  SizedBox(width: 48),
+                                  Expanded(child: Text(
+                                    "Dowolne",
+                                    textAlign: TextAlign.end,
+                                  )),
+                                  VerticalDivider(
+                                    width: 20,
+                                    indent: 5,
+                                    endIndent: 5,
+                                  ),
+                                  SizedBox(
+                                      width: 48,
+                                      child: TextFormField(
+                                        controller: lastPlacePointsController,
+                                        keyboardType: TextInputType.number,
+                                        inputFormatters: <TextInputFormatter>[
+                                          FilteringTextInputFormatter.digitsOnly
+                                        ],
+                                        onTapOutside: (v) {
+                                          FocusScope.of(context).unfocus();
+                                          placeToPointsMapping[LAST_PLACE] = int.parse(lastPlacePointsController.text);
+                                        },
+                                      ),
+                                    ),
+                                  SizedBox(width: 72),
+                                  Spacer()
+                                ],
+                              ),
+                            ),
+                            Text(
+                                "Dodaj próg",
+                            style: Theme.of(context).textTheme.titleMedium,),
+                            SizedBox(height: 8,),
+                            Row(
+                              // mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Flexible(
+                                  child: TextFormField(
+                                    controller: placeToPointsMappingKeyController,
+                                    keyboardType: TextInputType.number,
+                                    inputFormatters: <TextInputFormatter>[
+                                      FilteringTextInputFormatter.digitsOnly
+                                    ],
+                                    minLines: 1,
+                                    maxLines: 1,
+                                    decoration: InputDecoration(
+                                        border: OutlineInputBorder(),
+                                        hintText: "Miejsce (minimum)"),
+                                  ),
+                                ),
+                                SizedBox(width: 8,),
+                                Flexible(
+                                  child: TextFormField(
+                                    controller: placeToPointsMappingValueController,
+                                    keyboardType: TextInputType.number,
+                                    inputFormatters: <TextInputFormatter>[
+                                      FilteringTextInputFormatter.digitsOnly
+                                    ],
+                                    minLines: 1,
+                                    maxLines: 1,
+                                    decoration: InputDecoration(
+                                        border: OutlineInputBorder(),
+                                        hintText: "Punkty",
+                                        suffixText: "pkt."),
+                                  ),
+                                ),
+                                SizedBox(width: 32),
+                                IconButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        placeToPointsMapping[int.parse(placeToPointsMappingKeyController.text)] = int.parse(placeToPointsMappingValueController.text);
+                                        placeToPointsMappingKeyController.clear();
+                                        placeToPointsMappingValueController.clear();
+                                      });
+                                    },
+                                    icon: Icon(Icons.add_circle_outline))
+                              ],
                             ),
                           ]),
                     ),
