@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
+import 'package:date_field/date_field.dart';
 import 'package:dio/dio.dart';
 import 'package:file_picker/_internal/file_picker_web.dart';
 import 'package:file_picker/file_picker.dart';
@@ -62,7 +63,8 @@ class _CreateRacePageState extends State<CreateRacePage> {
     // TODO: implement initState
     super.initState();
     placeToPointsMapping = {LAST_PLACE: 0};
-    lastPlacePointsController.text = placeToPointsMapping[LAST_PLACE].toString();
+    lastPlacePointsController.text =
+        placeToPointsMapping[LAST_PLACE].toString();
   }
 
   var isAddEntryFeeChecked = false;
@@ -222,6 +224,7 @@ class _CreateRacePageState extends State<CreateRacePage> {
                                 controller: descriptionEditingController,
                                 minLines: 2,
                                 maxLines: 10,
+                                maxLength: 2048,
                                 decoration: InputDecoration(
                                     border: OutlineInputBorder(),
                                     hintText:
@@ -241,7 +244,8 @@ class _CreateRacePageState extends State<CreateRacePage> {
                                 controller: requirementsEditingController,
                                 keyboardType: TextInputType.multiline,
                                 minLines: 1,
-                                maxLines: 2,
+                                maxLines: 3,
+                                maxLength: 512,
                                 decoration: InputDecoration(
                                     border: OutlineInputBorder(),
                                     hintText:
@@ -288,6 +292,14 @@ class _CreateRacePageState extends State<CreateRacePage> {
                                           border: OutlineInputBorder(),
                                           hintText: "0 zł",
                                           suffixText: "zł"),
+                                      autovalidateMode: AutovalidateMode.always,
+                                      validator: (s) {
+                                        return s != null &&
+                                                s.isNotEmpty &&
+                                                int.parse(s) > 10000
+                                            ? "Kwota nie może być większa niż 10.000zł"
+                                            : null;
+                                      },
                                     ),
                                   ],
                                 ),
@@ -504,119 +516,113 @@ class _CreateRacePageState extends State<CreateRacePage> {
                           children: [
                             Row(
                               children: [
-                                InkWell(
-                                  onTap: () async {
-                                    var picked_s = await _selectDate(context);
-                                    if (picked_s != null &&
-                                        picked_s != startDateTime)
-                                      setState(() {
-                                        startDateTime = startDateTime.copyWith(
-                                            day: picked_s.day,
-                                            month: picked_s.month,
-                                            year: picked_s.year);
-                                        endDateTime = startDateTime.copyWith(
-                                            day: picked_s.day,
-                                            month: picked_s.month,
-                                            year: picked_s.year);
-                                      });
-                                  },
-                                  child: Card(
-                                    color: Colors.transparent,
-                                    elevation: 0,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(4),
-                                      side: BorderSide(
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .outline),
-                                    ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(16.0),
+                                Flexible(
+                                  child: FormField<DateTime>(
+                                      builder: (FormFieldState state) {
+                                    return InkWell(
+                                      onTap: () async {
+                                        var picked_s =
+                                            await _selectDate(context,
+                                            initialDate: startDateTime);
+                                        if (picked_s != null &&
+                                            picked_s != startDateTime)
+                                          setState(() {
+                                            startDateTime =
+                                                startDateTime.copyWith(
+                                                    day: picked_s.day,
+                                                    month: picked_s.month,
+                                                    year: picked_s.year);
+                                            endDateTime =
+                                                startDateTime.copyWith(
+                                                    day: picked_s.day,
+                                                    month: picked_s.month,
+                                                    year: picked_s.year);
+                                          });
+                                      },
+                                      child: InputDecorator(
+                                        decoration: InputDecoration(
+                                          icon: Icon(Icons.calendar_month),
+                                          border: OutlineInputBorder(),
+                                          errorText: state.errorText,
+                                        ),
+                                        child: Text(
+                                            "${DateFormat.EEEE("pl_PL").format(startDateTime).capitalize()}, ${DateFormat.MMMMd("pl_PL").format(startDateTime)}"),
+                                      ),
+                                    );
+                                  }),
+                                ),
+                                SizedBox(width: 64,),
+                                Icon(Icons.schedule),
+                                SizedBox(width: 16,),
+                                Flexible(
+                                  child: FormField<Map<DateTime, DateTime>>(
+                                      builder: (FormFieldState state) {
+                                    return InputDecorator(
+                                      decoration: InputDecoration(
+                                          isDense: true,
+                                          contentPadding: EdgeInsets.zero,
+                                        border: OutlineInputBorder(),
+                                        errorText: state.errorText,
+                                      ),
                                       child: Row(
                                         children: [
-                                          Icon(Icons.calendar_month),
-                                          SizedBox(
-                                            width: 8,
-                                          ),
-                                          Text(
-                                              "${DateFormat.EEEE("pl_PL").format(startDateTime).capitalize()}, ${DateFormat.MMMMd("pl_PL").format(startDateTime)}"),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Card(
-                                  color: Colors.transparent,
-                                  elevation: 0,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(4),
-                                    side: BorderSide(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .outline),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      InkWell(
-                                        onTap: () async {
-                                          var picked_s = await _selectTime(
-                                              context,
-                                              hintText: "Czas rozpoczęcia");
-                                          if (picked_s != null &&
-                                              picked_s != startDateTime) {
-                                            setState(() {
-                                              startDateTime =
-                                                  startDateTime.copyWith(
-                                                      hour: picked_s.hour,
-                                                      minute: picked_s.minute);
-                                            });
-                                          }
-                                        },
-                                        child: Padding(
-                                          padding: const EdgeInsets.only(
-                                              left: 16.0,
-                                              top: 16.0,
-                                              bottom: 16.0),
-                                          child: Row(
-                                            children: [
-                                              Icon(Icons.schedule),
-                                              SizedBox(
-                                                width: 8,
+                                          InkWell(
+                                            onTap: () async {
+                                              var picked_s = await _selectTime(
+                                                  context,
+                                                  hintText: "Godzina rozpoczęcia",
+                                                  initialTime: TimeOfDay(hour: startDateTime.hour, minute: startDateTime.minute));
+                                              if (picked_s != null &&
+                                                  picked_s != startDateTime) {
+                                                setState(() {
+                                                  startDateTime =
+                                                      startDateTime.copyWith(
+                                                          hour: picked_s.hour,
+                                                          minute: picked_s.minute);
+                                                });
+                                              }
+                                            },
+                                            child: Padding(
+                                              padding: const EdgeInsets.symmetric(
+                                                vertical: 20,
+                                                horizontal: 12
                                               ),
-                                              Text(DateFormat.Hm("pl_PL")
+                                              child: Text(DateFormat.Hm("pl_PL")
                                                   .format(startDateTime)
                                                   .capitalize()),
-                                            ],
+                                            ),
                                           ),
-                                        ),
+                                          Text("-"),
+                                          InkWell(
+                                            onTap: () async {
+                                              var picked_s = await _selectTime(
+                                                  context,
+                                                  hintText: "Godzina zakończenia",
+                                                  initialTime: TimeOfDay(hour: endDateTime.hour, minute: endDateTime.minute));
+                                              if (picked_s != null &&
+                                                  picked_s != endDateTime) {
+                                                setState(() {
+                                                  endDateTime =
+                                                      endDateTime.copyWith(
+                                                          hour: picked_s.hour,
+                                                          minute: picked_s.minute);
+                                                });
+                                              }
+                                            },
+                                            child: Padding(
+                                              padding: const EdgeInsets.symmetric(
+                                                  vertical: 20,
+                                                  horizontal: 12
+                                              ),
+                                              child: Text(
+                                                  DateFormat.Hm("pl_PL")
+                                                      .format(endDateTime)),
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                      InkWell(
-                                        onTap: () async {
-                                          var picked_s = await _selectTime(
-                                              context,
-                                              hintText: "Czas zakończenia");
-                                          if (picked_s != null &&
-                                              picked_s != endDateTime) {
-                                            setState(() {
-                                              endDateTime =
-                                                  endDateTime.copyWith(
-                                                      hour: picked_s.hour,
-                                                      minute: picked_s.minute);
-                                            });
-                                          }
-                                        },
-                                        child: Container(
-                                          padding: const EdgeInsets.only(
-                                              right: 16.0,
-                                              top: 16.0,
-                                              bottom: 16.0),
-                                          child: Text(" - " +
-                                              DateFormat.Hm("pl_PL")
-                                                  .format(endDateTime)),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                                    );
+                                  }),
                                 ),
                               ],
                             ),
@@ -648,46 +654,36 @@ class _CreateRacePageState extends State<CreateRacePage> {
                                   SizedBox(
                                     height: 8,
                                   ),
-                                  InkWell(
-                                    onTap: () async {
-                                      var picked_s = await _selectTime(context,
-                                          hintText: "Czas zakończenia");
-                                      if (picked_s != null &&
-                                          picked_s != meetupDateTime) {
-                                        setState(() {
-                                          meetupDateTime =
-                                              startDateTime.copyWith(
-                                                  hour: picked_s.hour,
-                                                  minute: picked_s.minute);
-                                        });
-                                      }
-                                    },
-                                    child: Card(
-                                      color: Colors.transparent,
-                                      elevation: 0,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(4),
-                                        side: BorderSide(
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .outline),
-                                      ),
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(16.0),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Icon(Icons.schedule),
-                                            SizedBox(
-                                              width: 8,
+                                  IntrinsicWidth(
+                                    child: FormField<Map<DateTime, DateTime>>(
+                                        builder: (FormFieldState state) {
+                                          return InkWell(
+                                            onTap: () async {
+                                              var picked_s = await _selectTime(context,
+                                                  hintText: "Czas zakończenia",
+                                                  initialTime: TimeOfDay(hour: meetupDateTime.hour, minute: meetupDateTime.minute));
+                                              if (picked_s != null &&
+                                                  picked_s != meetupDateTime) {
+                                                setState(() {
+                                                  meetupDateTime =
+                                                      startDateTime.copyWith(
+                                                          hour: picked_s.hour,
+                                                          minute: picked_s.minute);
+                                                });
+                                              }
+                                            },
+                                            child: InputDecorator(
+                                              decoration: InputDecoration(
+                                                border: OutlineInputBorder(),
+                                                errorText: state.errorText,
+                                                icon: Icon(Icons.schedule),
+                                              ),
+                                              child: Text(DateFormat.Hm("pl_PL")
+                                                  .format(meetupDateTime)
+                                                  .capitalize()),
                                             ),
-                                            Text(DateFormat.Hm("pl_PL")
-                                                .format(meetupDateTime)
-                                                .capitalize()),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
+                                          );
+                                        }),
                                   ),
                                 ],
                               ),
@@ -713,18 +709,27 @@ class _CreateRacePageState extends State<CreateRacePage> {
                           children: [
                             ListView.builder(
                                 shrinkWrap: true,
-                                itemCount: placeToPointsMapping.length-1,
+                                itemCount: placeToPointsMapping.length - 1,
                                 itemBuilder: (context, index) {
-                                  var keysSorted =
-                                      placeToPointsMapping.keys.where((element) => element != LAST_PLACE).toList();
+                                  var keysSorted = placeToPointsMapping.keys
+                                      .where((element) => element != LAST_PLACE)
+                                      .toList();
                                   keysSorted.sort();
                                   var key = keysSorted[index];
                                   return IntrinsicHeight(
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Expanded(child: Text(
-                                          (index == placeToPointsMapping.length -1 || key == 1 ? "" : "≤ ") + key.toString(),
+                                        Expanded(
+                                            child: Text(
+                                          (index ==
+                                                          placeToPointsMapping
+                                                                  .length -
+                                                              1 ||
+                                                      key == 1
+                                                  ? ""
+                                                  : "≤ ") +
+                                              key.toString(),
                                           textAlign: TextAlign.end,
                                         )),
                                         VerticalDivider(
@@ -733,18 +738,20 @@ class _CreateRacePageState extends State<CreateRacePage> {
                                           endIndent: 5,
                                         ),
                                         Expanded(
-                                          child: Text(
-                                              placeToPointsMapping[key].toString() + " pkt."),
+                                          child: Text(placeToPointsMapping[key]
+                                                  .toString() +
+                                              " pkt."),
                                         ),
                                         SizedBox(width: 32),
                                         IconButton(
                                             onPressed: () {
                                               setState(() {
-                                                placeToPointsMapping.remove(key);
+                                                placeToPointsMapping
+                                                    .remove(key);
                                               });
                                             },
-                                            icon:
-                                                Icon(Icons.remove_circle_outline))
+                                            icon: Icon(
+                                                Icons.remove_circle_outline))
                                       ],
                                     ),
                                   );
@@ -754,7 +761,8 @@ class _CreateRacePageState extends State<CreateRacePage> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   SizedBox(width: 48),
-                                  Expanded(child: Text(
+                                  Expanded(
+                                      child: Text(
                                     "Dowolne",
                                     textAlign: TextAlign.end,
                                   )),
@@ -764,34 +772,40 @@ class _CreateRacePageState extends State<CreateRacePage> {
                                     endIndent: 5,
                                   ),
                                   SizedBox(
-                                      width: 48,
-                                      child: TextFormField(
-                                        controller: lastPlacePointsController,
-                                        keyboardType: TextInputType.number,
-                                        inputFormatters: <TextInputFormatter>[
-                                          FilteringTextInputFormatter.digitsOnly
-                                        ],
-                                        onTapOutside: (v) {
-                                          FocusScope.of(context).unfocus();
-                                          placeToPointsMapping[LAST_PLACE] = int.parse(lastPlacePointsController.text);
-                                        },
-                                      ),
+                                    width: 48,
+                                    child: TextFormField(
+                                      controller: lastPlacePointsController,
+                                      keyboardType: TextInputType.number,
+                                      inputFormatters: <TextInputFormatter>[
+                                        FilteringTextInputFormatter.digitsOnly
+                                      ],
+                                      onTapOutside: (v) {
+                                        FocusScope.of(context).unfocus();
+                                        placeToPointsMapping[LAST_PLACE] =
+                                            int.parse(
+                                                lastPlacePointsController.text);
+                                      },
                                     ),
+                                  ),
                                   SizedBox(width: 72),
                                   Spacer()
                                 ],
                               ),
                             ),
                             Text(
-                                "Dodaj próg",
-                            style: Theme.of(context).textTheme.titleMedium,),
-                            SizedBox(height: 8,),
+                              "Dodaj próg",
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            SizedBox(
+                              height: 8,
+                            ),
                             Row(
                               // mainAxisSize: MainAxisSize.min,
                               children: [
                                 Flexible(
                                   child: TextFormField(
-                                    controller: placeToPointsMappingKeyController,
+                                    controller:
+                                        placeToPointsMappingKeyController,
                                     keyboardType: TextInputType.number,
                                     inputFormatters: <TextInputFormatter>[
                                       FilteringTextInputFormatter.digitsOnly
@@ -803,10 +817,13 @@ class _CreateRacePageState extends State<CreateRacePage> {
                                         hintText: "Miejsce (minimum)"),
                                   ),
                                 ),
-                                SizedBox(width: 8,),
+                                SizedBox(
+                                  width: 8,
+                                ),
                                 Flexible(
                                   child: TextFormField(
-                                    controller: placeToPointsMappingValueController,
+                                    controller:
+                                        placeToPointsMappingValueController,
                                     keyboardType: TextInputType.number,
                                     inputFormatters: <TextInputFormatter>[
                                       FilteringTextInputFormatter.digitsOnly
@@ -823,9 +840,15 @@ class _CreateRacePageState extends State<CreateRacePage> {
                                 IconButton(
                                     onPressed: () {
                                       setState(() {
-                                        placeToPointsMapping[int.parse(placeToPointsMappingKeyController.text)] = int.parse(placeToPointsMappingValueController.text);
-                                        placeToPointsMappingKeyController.clear();
-                                        placeToPointsMappingValueController.clear();
+                                        placeToPointsMapping[int.parse(
+                                            placeToPointsMappingKeyController
+                                                .text)] = int.parse(
+                                            placeToPointsMappingValueController
+                                                .text);
+                                        placeToPointsMappingKeyController
+                                            .clear();
+                                        placeToPointsMappingValueController
+                                            .clear();
                                       });
                                     },
                                     icon: Icon(Icons.add_circle_outline))
@@ -926,8 +949,8 @@ class _CreateRacePageState extends State<CreateRacePage> {
   }
 
   Future<TimeOfDay?> _selectTime(BuildContext context,
-      {String? hintText}) async {
-    TimeOfDay selectedTime = TimeOfDay.now();
+      {String? hintText, TimeOfDay? initialTime}) async {
+    TimeOfDay selectedTime = initialTime ?? TimeOfDay.now();
     final TimeOfDay? picked_s = await showTimePicker(
         context: context,
         initialTime: selectedTime,
@@ -945,8 +968,8 @@ class _CreateRacePageState extends State<CreateRacePage> {
     return picked_s;
   }
 
-  Future<DateTime?> _selectDate(BuildContext context) async {
-    DateTime selectedDate = DateTime.now();
+  Future<DateTime?> _selectDate(BuildContext context, {DateTime? initialDate}) async {
+    DateTime selectedDate = initialDate ?? DateTime.now();
     final DateTime? picked_s = await showDatePicker(
         firstDate: DateTime.now(),
         lastDate: DateTime.now().add(Duration(days: 365)),
