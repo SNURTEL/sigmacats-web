@@ -1,16 +1,17 @@
 import 'dart:convert';
-import 'dart:io';
-import 'dart:js_interop';
 import 'dart:math';
 import 'package:dio/dio.dart';
 import 'package:file_picker/_internal/file_picker_web.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:sizer/sizer.dart';
-// import 'package:http/http.dart' as http;
+import 'package:flutter_map_cancellable_tile_provider/flutter_map_cancellable_tile_provider.dart';
+import 'package:gpx/gpx.dart';
 
 import 'components/NumberPicker.dart';
 import 'settings.dart' as settings;
@@ -29,9 +30,14 @@ class _CreateRacePageState extends State<CreateRacePage> {
   final descriptionEditingController = TextEditingController();
   final requirementsEditingController = TextEditingController();
   final entryFeeEditingController = TextEditingController();
+  final mapController = MapController();
   final _formKey = GlobalKey<FormState>();
 
   String? uploadedGpxFilePath;
+  Gpx? uploadedGpxObject;
+  late List<Wpt> points;
+
+  Uint8List? eventGraphicBytes;
 
   DateTime startDateTime = DateTime.now()
       .copyWith(second: 0, millisecond: 0)
@@ -53,12 +59,21 @@ class _CreateRacePageState extends State<CreateRacePage> {
   var isLoading = false;
   var successfullyCreated = false;
 
+  TileLayer get openStreetMapTileLayer => TileLayer(
+        urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+        userAgentPackageName: 'dev.fleaflet.flutter_map.example',
+        // Use the recommended flutter_map_cancellable_tile_provider package to
+        // support the cancellation of loading tiles.
+        tileProvider: CancellableNetworkTileProvider(),
+      );
+
   @override
   void dispose() {
     nameEditingController.dispose();
     descriptionEditingController.dispose();
     requirementsEditingController.dispose();
     entryFeeEditingController.dispose();
+    mapController.dispose();
     super.dispose();
   }
 
@@ -104,94 +119,166 @@ class _CreateRacePageState extends State<CreateRacePage> {
                     height: 64,
                   ),
                   Card(
-                    child: Padding(
-                      padding: EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            "Opis",
-                            style: Theme.of(context).textTheme.titleMedium,
+                    child: Column(
+                      children: [
+                        InkWell(
+                          onTap: () async {
+                            FilePickerResult? picked =
+                                await FilePickerWeb.platform.pickFiles(
+                              type: FileType.custom,
+                              allowedExtensions: ['jpg', 'jpeg', 'png'],
+                            );
+
+                            if (picked == null) {
+                              print("No file picked");
+                              return;
+                            }
+
+                            print(picked.files.first.name);
+                            var bytes = picked.files.single.bytes!;
+
+                            FormData formData = FormData.fromMap({
+                              "fileobj": MultipartFile.fromBytes(bytes,
+                                  filename: picked.files.first.name),
+                              "name": picked.files.first.name
+                            });
+                            var response = await dio.post(
+                                "http://127.0.0.11:5050/api/upload-test/",
+                                data: formData);
+
+                            print(response.statusCode);
+                            print(response.data);
+                            var uploadedFileMeta = response.data;
+                            setState(() {
+                              eventGraphicBytes = bytes;
+                              print(
+                                  "PATH IS ${uploadedFileMeta['fileobj.path']}");
+                            });
+                          },
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(16.0),
+                              topRight: Radius.circular(16.0),
+                            ),
+                            child: Visibility(
+                              visible: eventGraphicBytes == null,
+                              replacement: eventGraphicBytes == null
+                                  ? Container()
+                                  : Image.memory(eventGraphicBytes!),
+                              child: SizedBox(
+                                height: 64.0,
+                                width: double.infinity,
+                                child: ColoredBox(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .primaryContainer,
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.add_photo_alternate_outlined),
+                                      SizedBox(
+                                        width: 8,
+                                      ),
+                                      Text("Dodaj grafikę wydarzenia")
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
-                          SizedBox(
-                            height: 4,
-                          ),
-                          TextFormField(
-                            keyboardType: TextInputType.multiline,
-                            controller: descriptionEditingController,
-                            minLines: 2,
-                            maxLines: 10,
-                            decoration: InputDecoration(
-                                border: OutlineInputBorder(),
-                                hintText: "Krótki opis zawierający postawowe informacje o wyścigu\n\t1. Zbiórka\n\t2. Przejazd trasy\n\t3. Wyłonie zwycięzcy"),
-                          ),
-                          SizedBox(
-                            height: 24,
-                          ),
-                          Text(
-                            "Wymagania (opcjonalne)",
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                          SizedBox(
-                            height: 4,
-                          ),
-                          TextFormField(
-                            controller: requirementsEditingController,
-                            keyboardType: TextInputType.multiline,
-                            minLines: 1,
-                            maxLines: 2,
-                            decoration: InputDecoration(
-                                border: OutlineInputBorder(),
-                                hintText:
-                                    "Dodatkowe wymagania dla uczestników: kask, lampki, itp."),
-                          ),
-                          SizedBox(
-                            height: 12,
-                          ),
-                          Row(
+                        ),
+                        Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Switch(
-                                  value: isAddEntryFeeChecked,
-                                  onChanged: (val) {
-                                    setState(() {
-                                      isAddEntryFeeChecked = val;
-                                    });
-                                  }),
+                              Text(
+                                "Opis",
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
                               SizedBox(
-                                width: 8,
+                                height: 4,
+                              ),
+                              TextFormField(
+                                keyboardType: TextInputType.multiline,
+                                controller: descriptionEditingController,
+                                minLines: 2,
+                                maxLines: 10,
+                                decoration: InputDecoration(
+                                    border: OutlineInputBorder(),
+                                    hintText:
+                                        "Krótki opis zawierający postawowe informacje o wyścigu\n\t1. Zbiórka\n\t2. Przejazd trasy\n\t3. Wyłonie zwycięzcy"),
+                              ),
+                              SizedBox(
+                                height: 24,
                               ),
                               Text(
-                                "Dodaj opłatę wpisową",
-                                style: Theme.of(context).textTheme.labelLarge,
+                                "Wymagania (opcjonalne)",
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                              SizedBox(
+                                height: 4,
+                              ),
+                              TextFormField(
+                                controller: requirementsEditingController,
+                                keyboardType: TextInputType.multiline,
+                                minLines: 1,
+                                maxLines: 2,
+                                decoration: InputDecoration(
+                                    border: OutlineInputBorder(),
+                                    hintText:
+                                        "Dodatkowe wymagania dla uczestników: kask, lampki, itp."),
+                              ),
+                              SizedBox(
+                                height: 12,
+                              ),
+                              Row(
+                                children: [
+                                  Switch(
+                                      value: isAddEntryFeeChecked,
+                                      onChanged: (val) {
+                                        setState(() {
+                                          isAddEntryFeeChecked = val;
+                                        });
+                                      }),
+                                  SizedBox(
+                                    width: 8,
+                                  ),
+                                  Text(
+                                    "Dodaj opłatę wpisową",
+                                    style:
+                                        Theme.of(context).textTheme.labelLarge,
+                                  )
+                                ],
+                              ),
+                              Visibility(
+                                visible: isAddEntryFeeChecked,
+                                child: Column(
+                                  children: [
+                                    SizedBox(
+                                      height: 8,
+                                    ),
+                                    TextFormField(
+                                      controller: entryFeeEditingController,
+                                      keyboardType: TextInputType.number,
+                                      inputFormatters: <TextInputFormatter>[
+                                        FilteringTextInputFormatter.digitsOnly
+                                      ],
+                                      minLines: 1,
+                                      maxLines: 1,
+                                      decoration: InputDecoration(
+                                          border: OutlineInputBorder(),
+                                          hintText: "0 zł",
+                                          suffixText: "zł"),
+                                    ),
+                                  ],
+                                ),
                               )
                             ],
                           ),
-                          Visibility(
-                            visible: isAddEntryFeeChecked,
-                            child: Column(
-                              children: [
-                                SizedBox(
-                                  height: 8,
-                                ),
-                                TextFormField(
-                                  controller: entryFeeEditingController,
-                                  keyboardType: TextInputType.number,
-                                  inputFormatters: <TextInputFormatter>[
-                                    FilteringTextInputFormatter.digitsOnly
-                                  ],
-                                  minLines: 1,
-                                  maxLines: 1,
-                                  decoration: InputDecoration(
-                                      border: OutlineInputBorder(),
-                                      hintText: "0 zł",
-                                      suffixText: "zł"),
-                                ),
-                              ],
-                            ),
-                          )
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                   SizedBox(height: 24.0),
@@ -204,85 +291,145 @@ class _CreateRacePageState extends State<CreateRacePage> {
                   ),
                   SizedBox(height: 24.0),
                   Card(
-                    child: Padding(
-                      padding: EdgeInsets.all(16.0),
-                      child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Row(
+                    child: Column(
+                      children: [
+                        SizedBox(
+                          height: 30.h,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(16.0),
+                              topRight: Radius.circular(16.0),
+                            ),
+                            child: ColorFiltered(
+                              colorFilter: ColorFilter.mode(
+                                uploadedGpxObject == null ? Theme.of(context).colorScheme.surface.withOpacity(0.62) : Colors.transparent,
+                                BlendMode.srcOver,
+                              ),
+                              child: FlutterMap(
+                                mapController: mapController,
+                                options: MapOptions(
+                                  initialCenter: LatLng(52.23202828872916, 21.006132649819673),  // Warsaw
+                                  initialZoom: 13,
+                                  interactionOptions: InteractionOptions(flags: uploadedGpxObject != null ? InteractiveFlag.all : InteractiveFlag.none)
+                                ),
+                                children: [
+                                  openStreetMapTileLayer,
+                                  PolylineLayer(
+                                    polylines: [
+                                      Polyline(
+                                        points: uploadedGpxObject != null
+                                            ? uploadedGpxObject!
+                                                .trks.first.trksegs.first.trkpts
+                                                .where((element) =>
+                                                    element.lat != null &&
+                                                    element.lon != null)
+                                                .map(
+                                                    (e) => LatLng(e.lat!, e.lon!))
+                                                .toList()
+                                            : [],
+                                        strokeWidth: 3,
+                                        color:
+                                            Theme.of(context).colorScheme.primary,
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
                               children: [
-                                FilledButton(
-                                  onPressed: () async {
-                                    FilePickerResult? picked =
-                                        await FilePickerWeb.platform
-                                            .pickFiles(
+                                Row(
+                                  children: [
+                                    FilledButton(
+                                      onPressed: () async {
+                                        FilePickerResult? picked =
+                                            await FilePickerWeb.platform
+                                                .pickFiles(
                                           type: FileType.custom,
                                           allowedExtensions: ['gpx'],
                                         );
 
-                                    if (picked == null) {
-                                      print("No file picked");
-                                      return;
-                                    }
+                                        if (picked == null) {
+                                          print("No file picked");
+                                          return;
+                                        }
 
-                                    print(picked.files.first.name);
-                                    var bytes = picked.files.single.bytes!;
+                                        print(picked.files.first.name);
+                                        var bytes = picked.files.single.bytes!;
 
-                                    FormData formData = FormData.fromMap({
-                                      "fileobj": MultipartFile.fromBytes(bytes,
-                                          filename: picked.files.first.name),
-                                      "name": picked.files.first.name
-                                    });
-                                    var response = await dio.post(
-                                        "http://127.0.0.11:5050/api/upload-test/",
-                                        data: formData);
+                                        FormData formData = FormData.fromMap({
+                                          "fileobj": MultipartFile.fromBytes(
+                                              bytes,
+                                              filename:
+                                                  picked.files.first.name),
+                                          "name": picked.files.first.name
+                                        });
+                                        var response = await dio.post(
+                                            "http://127.0.0.11:5050/api/upload-test/",
+                                            data: formData);
 
-                                    print(response.statusCode);
-                                    print(response.data);
-                                    if (response.statusCode == 200) {
-                                      final Map<String, dynamic>
-                                          uploadedFileMeta = response.data;
-                                      setState(() {
-                                        uploadedGpxFilePath =
-                                            uploadedFileMeta['fileobj.path'];
-                                        print("PATH IS ${uploadedGpxFilePath}");
-                                      });
-                                    }
-                                    ;
-                                  },
-                                  child: const Row(
-                                    children: [
-                                      Icon(Icons.add),
-                                      SizedBox(
-                                        width: 4,
+                                        print(response.statusCode);
+                                        print(response.data);
+                                        if (response.statusCode == 200) {
+                                          final Map<String, dynamic>
+                                              uploadedFileMeta = response.data;
+                                          setState(() {
+                                            uploadedGpxFilePath =
+                                                uploadedFileMeta[
+                                                    'fileobj.path'];
+                                            print(
+                                                "PATH IS ${uploadedGpxFilePath}");
+                                            uploadedGpxObject = GpxReader()
+                                                .fromString(utf8.decode(bytes));
+                                            points = uploadedGpxObject!.trks
+                                                .first.trksegs.first.trkpts;
+                                            print(
+                                                "GPX has ${points.length} trackpoints");
+
+                                            fitMap();
+                                          });
+                                        }
+                                      },
+                                      child: const Row(
+                                        children: [
+                                          Icon(Icons.add),
+                                          SizedBox(
+                                            width: 4,
+                                          ),
+                                          Text('Prześlij plik GPX')
+                                        ],
                                       ),
-                                      Text('Prześlij plik GPX')
-                                    ],
-                                  ),
+                                    ),
+                                    SizedBox(
+                                      width: 8,
+                                    ),
+                                    Visibility(
+                                        visible: uploadedGpxFilePath != null &&
+                                            uploadedGpxFilePath!.isNotEmpty,
+                                        child: Text(
+                                          uploadedGpxFilePath != null
+                                              ? uploadedGpxFilePath!
+                                              : "",
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .titleMedium
+                                              ?.copyWith(
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .onSurface
+                                                      .withAlpha(128)),
+                                        ))
+                                  ],
                                 ),
-                                SizedBox(
-                                  width: 8,
-                                ),
-                                Visibility(
-                                    visible: uploadedGpxFilePath != null &&
-                                        uploadedGpxFilePath!.isNotEmpty,
-                                    child: Text(
-                                      uploadedGpxFilePath != null
-                                          ? uploadedGpxFilePath!
-                                          : "",
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleMedium
-                                          ?.copyWith(
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .onSurface
-                                                  .withAlpha(128)),
-                                    ))
-                              ],
-                            ),
-                          ]),
+                              ]),
+                        ),
+                      ],
                     ),
                   ),
                   SizedBox(height: 8.0),
@@ -566,10 +713,10 @@ class _CreateRacePageState extends State<CreateRacePage> {
                                   data: requestData);
                               print(response.statusCode);
                               print(response.data);
-                              showNotification(
-                                  context, 'Utworzono wyścig ${nameEditingController.text}!');
+                              showNotification(context,
+                                  'Utworzono wyścig ${nameEditingController.text}!');
                               setState(() {
-                                successfullyCreated=true;
+                                successfullyCreated = true;
                               });
                               await Future.delayed(Duration(seconds: 4));
                               context.go('/');
@@ -602,6 +749,17 @@ class _CreateRacePageState extends State<CreateRacePage> {
     );
   }
 
+  void fitMap() {
+    mapController.fitCamera(
+      CameraFit.bounds(
+          bounds: LatLngBounds.fromPoints(points
+              .where((e) => e.lat != null && e.lon != null)
+              .map((e) => LatLng(e.lat!, e.lon!))
+              .toList()),
+          padding: EdgeInsets.all(32)),
+    );
+  }
+
   Future<TimeOfDay?> _selectTime(BuildContext context,
       {String? hintText}) async {
     TimeOfDay selectedTime = TimeOfDay.now();
@@ -611,9 +769,11 @@ class _CreateRacePageState extends State<CreateRacePage> {
         helpText: hintText,
         builder: (BuildContext context, Widget? child) {
           return MediaQuery(
-            data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: false).copyWith(
-              alwaysUse24HourFormat: true,
-            ),
+            data: MediaQuery.of(context)
+                .copyWith(alwaysUse24HourFormat: false)
+                .copyWith(
+                  alwaysUse24HourFormat: true,
+                ),
             child: child!,
           );
         });
@@ -629,9 +789,11 @@ class _CreateRacePageState extends State<CreateRacePage> {
         initialDate: selectedDate,
         builder: (BuildContext context, Widget? child) {
           return MediaQuery(
-            data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: false).copyWith(
-              alwaysUse24HourFormat: true,
-            ),
+            data: MediaQuery.of(context)
+                .copyWith(alwaysUse24HourFormat: false)
+                .copyWith(
+                  alwaysUse24HourFormat: true,
+                ),
             child: child!,
           );
         });

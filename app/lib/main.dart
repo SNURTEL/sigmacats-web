@@ -1,5 +1,6 @@
 import 'package:app/AppScaffold.dart';
 import 'package:app/CreateRacePage.dart';
+import 'package:app/theme/Color.dart';
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -65,6 +66,8 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     return Sizer(builder: (context, orientation, deviceType) {
       return MaterialApp.router(
+        theme: ThemeData(useMaterial3: true, colorScheme: lightColorScheme),
+        darkTheme: ThemeData(useMaterial3: true, colorScheme: darkColorScheme),
         routerConfig: _router,
       );
     });
