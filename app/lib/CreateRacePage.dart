@@ -26,6 +26,14 @@ class CreateRacePage extends StatefulWidget {
   _CreateRacePageState createState() => _CreateRacePageState();
 }
 
+DateTime clipDay(DateTime d) {
+  if (!DateUtils.isSameDay(d, DateTime.now())) {
+    return DateTime.now().copyWith(hour: 23, minute: 59, second: 59, millisecond: 0, microsecond: 0);
+  } else {
+    return d;
+  }
+}
+
 class _CreateRacePageState extends State<CreateRacePage> {
   final nameEditingController = TextEditingController();
   final descriptionEditingController = TextEditingController();
@@ -41,17 +49,12 @@ class _CreateRacePageState extends State<CreateRacePage> {
   Gpx? uploadedGpxObject;
   late List<Wpt> points;
 
+  String? eventGraphicFilePath;
   Uint8List? eventGraphicBytes;
 
-  DateTime startDateTime = DateTime.now()
-      .copyWith(second: 0, millisecond: 0)
-      .add(Duration(hours: 1));
-  DateTime endDateTime = DateTime.now()
-      .copyWith(second: 0, millisecond: 0)
-      .add(Duration(hours: 3));
-  DateTime meetupDateTime = DateTime.now()
-      .copyWith(second: 0, millisecond: 0)
-      .add(Duration(hours: 1));
+  DateTime startDateTime = clipDay(DateTime.now().copyWith(second: 0, millisecond: 0, microsecond: 0).add(Duration(hours: 1)));
+  DateTime endDateTime = clipDay(DateTime.now().copyWith(second: 0, millisecond: 0, microsecond: 0).add(Duration(hours: 3)));
+  DateTime meetupDateTime = clipDay(DateTime.now().copyWith(second: 0, millisecond: 0, microsecond: 0).add(Duration(hours: 1)));
 
   var noLaps = 1;
 
@@ -63,8 +66,7 @@ class _CreateRacePageState extends State<CreateRacePage> {
     // TODO: implement initState
     super.initState();
     placeToPointsMapping = {LAST_PLACE: 0};
-    lastPlacePointsController.text =
-        placeToPointsMapping[LAST_PLACE].toString();
+    lastPlacePointsController.text = placeToPointsMapping[LAST_PLACE].toString();
   }
 
   var isAddEntryFeeChecked = false;
@@ -74,6 +76,8 @@ class _CreateRacePageState extends State<CreateRacePage> {
 
   var isLoading = false;
   var successfullyCreated = false;
+  String? gpxErrorMessage;
+  String? eventGraphicErrorMessage;
 
   TileLayer get openStreetMapTileLayer => TileLayer(
         urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
@@ -121,6 +125,7 @@ class _CreateRacePageState extends State<CreateRacePage> {
             ),
             SizedBox(height: 64.0),
             Form(
+              key: _formKey,
               child: Column(
                 children: [
                   TextFormField(
@@ -129,10 +134,9 @@ class _CreateRacePageState extends State<CreateRacePage> {
                       decoration: InputDecoration(
                         hintText: "Nazwa wyścigu",
                       ),
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
                       validator: (value) {
-                        return (value?.isNotEmpty ?? true)
-                            ? null
-                            : "Pole wymagane";
+                        return (value?.isNotEmpty ?? true) ? null : "Pole wymagane";
                       }),
                   SizedBox(
                     height: 64,
@@ -140,72 +144,90 @@ class _CreateRacePageState extends State<CreateRacePage> {
                   Card(
                     child: Column(
                       children: [
-                        InkWell(
-                          onTap: () async {
-                            FilePickerResult? picked =
-                                await FilePickerWeb.platform.pickFiles(
-                              type: FileType.custom,
-                              allowedExtensions: ['jpg', 'jpeg', 'png'],
-                            );
-
-                            if (picked == null) {
-                              print("No file picked");
-                              return;
-                            }
-
-                            print(picked.files.first.name);
-                            var bytes = picked.files.single.bytes!;
-
-                            FormData formData = FormData.fromMap({
-                              "fileobj": MultipartFile.fromBytes(bytes,
-                                  filename: picked.files.first.name),
-                              "name": picked.files.first.name
-                            });
-                            var response = await dio.post(
-                                "http://127.0.0.11:5050/api/upload-test/",
-                                data: formData);
-
-                            print(response.statusCode);
-                            print(response.data);
-                            var uploadedFileMeta = response.data;
-                            setState(() {
-                              eventGraphicBytes = bytes;
-                              print(
-                                  "PATH IS ${uploadedFileMeta['fileobj.path']}");
-                            });
+                        FormField<String>(
+                          autovalidateMode: AutovalidateMode.onUserInteraction,
+                          validator: (v) {
+                            var res = v == null || v.isEmpty  ? "Nie wybrano grafiki wydarzenia." : null;
+                            eventGraphicErrorMessage = res;
+                            return res;
                           },
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.only(
-                              topLeft: Radius.circular(16.0),
-                              topRight: Radius.circular(16.0),
-                            ),
-                            child: Visibility(
-                              visible: eventGraphicBytes == null,
-                              replacement: eventGraphicBytes == null
-                                  ? Container()
-                                  : Image.memory(eventGraphicBytes!),
-                              child: SizedBox(
-                                height: 64.0,
-                                width: double.infinity,
-                                child: ColoredBox(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .primaryContainer,
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(Icons.add_photo_alternate_outlined),
-                                      SizedBox(
-                                        width: 8,
+                          builder: (state) {
+                            return InkWell(
+                              onTap: () async {
+                                FilePickerResult? picked = await FilePickerWeb.platform.pickFiles(
+                                  type: FileType.custom,
+                                  allowedExtensions: ['jpg', 'jpeg', 'png'],
+                                );
+
+                                if (picked == null) {
+                                  print("No file picked");
+                                  return;
+                                }
+
+                                print(picked.files.first.name);
+                                var bytes = picked.files.single.bytes!;
+
+                                FormData formData = FormData.fromMap({
+                                  "fileobj": MultipartFile.fromBytes(bytes, filename: picked.files.first.name),
+                                  "name": picked.files.first.name
+                                });
+                                try {
+                                  var response = await dio.post("http://127.0.0.11:5050/api/upload-test/", data: formData);
+                                  print(response.data);
+                                  var uploadedFileMeta = response.data;
+                                  setState(() {
+                                    eventGraphicBytes = bytes;
+                                    print("PATH IS ${uploadedFileMeta['fileobj.path']}");
+                                    eventGraphicFilePath = uploadedFileMeta['fileobj.path'];
+                                    state.setValue(uploadedFileMeta['fileobj.path']);
+                                    eventGraphicErrorMessage = null;
+                                  });
+                                } on DioException catch (e) {
+                                  print(e.response?.statusCode);
+                                  print(e.response?.data);
+                                  showNotification(context, "Błąd podczas przesyłania pliku.");
+                                  return;
+                                }
+                              },
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(16.0),
+                                  topRight: Radius.circular(16.0),
+                                ),
+                                child: Visibility(
+                                  visible: eventGraphicBytes == null,
+                                  replacement: eventGraphicBytes == null ? Container() : Image.memory(eventGraphicBytes!),
+                                  child: SizedBox(
+                                    height: 64.0,
+                                    width: double.infinity,
+                                    child: ColoredBox(
+                                      color: Theme.of(context).colorScheme.primaryContainer,
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(Icons.add_photo_alternate_outlined),
+                                          SizedBox(
+                                            width: 8,
+                                          ),
+                                          Text("Dodaj grafikę wydarzenia")
+                                        ],
                                       ),
-                                      Text("Dodaj grafikę wydarzenia")
-                                    ],
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                          ),
+                            );
+                          },
                         ),
+                        Visibility(
+                            visible: eventGraphicErrorMessage != null,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                eventGraphicErrorMessage != null ? eventGraphicErrorMessage! : "",
+                                style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Theme.of(context).colorScheme.error),
+                              ),
+                            )),
                         Padding(
                           padding: EdgeInsets.all(16),
                           child: Column(
@@ -225,6 +247,10 @@ class _CreateRacePageState extends State<CreateRacePage> {
                                 minLines: 2,
                                 maxLines: 10,
                                 maxLength: 2048,
+                                autovalidateMode: AutovalidateMode.onUserInteraction,
+                                validator: (value) {
+                                  return (value?.isNotEmpty ?? true) ? null : "Pole wymagane";
+                                },
                                 decoration: InputDecoration(
                                     border: OutlineInputBorder(),
                                     hintText:
@@ -247,9 +273,7 @@ class _CreateRacePageState extends State<CreateRacePage> {
                                 maxLines: 3,
                                 maxLength: 512,
                                 decoration: InputDecoration(
-                                    border: OutlineInputBorder(),
-                                    hintText:
-                                        "Dodatkowe wymagania dla uczestników: kask, lampki, itp."),
+                                    border: OutlineInputBorder(), hintText: "Dodatkowe wymagania dla uczestników: kask, lampki, itp."),
                               ),
                               SizedBox(
                                 height: 12,
@@ -268,8 +292,7 @@ class _CreateRacePageState extends State<CreateRacePage> {
                                   ),
                                   Text(
                                     "Dodaj opłatę wpisową",
-                                    style:
-                                        Theme.of(context).textTheme.labelLarge,
+                                    style: Theme.of(context).textTheme.labelLarge,
                                   )
                                 ],
                               ),
@@ -283,20 +306,13 @@ class _CreateRacePageState extends State<CreateRacePage> {
                                     TextFormField(
                                       controller: entryFeeEditingController,
                                       keyboardType: TextInputType.number,
-                                      inputFormatters: <TextInputFormatter>[
-                                        FilteringTextInputFormatter.digitsOnly
-                                      ],
+                                      inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
                                       minLines: 1,
                                       maxLines: 1,
-                                      decoration: InputDecoration(
-                                          border: OutlineInputBorder(),
-                                          hintText: "0 zł",
-                                          suffixText: "zł"),
-                                      autovalidateMode: AutovalidateMode.always,
+                                      decoration: InputDecoration(border: OutlineInputBorder(), hintText: "0 zł", suffixText: "zł"),
+                                      autovalidateMode: AutovalidateMode.onUserInteraction,
                                       validator: (s) {
-                                        return s != null &&
-                                                s.isNotEmpty &&
-                                                int.parse(s) > 10000
+                                        return s != null && s.isNotEmpty && int.parse(s) > 10000
                                             ? "Kwota nie może być większa niż 10.000zł"
                                             : null;
                                       },
@@ -331,43 +347,29 @@ class _CreateRacePageState extends State<CreateRacePage> {
                             ),
                             child: ColorFiltered(
                               colorFilter: ColorFilter.mode(
-                                uploadedGpxObject == null
-                                    ? Theme.of(context)
-                                        .colorScheme
-                                        .surface
-                                        .withOpacity(0.62)
-                                    : Colors.transparent,
+                                uploadedGpxObject == null ? Theme.of(context).colorScheme.surface.withOpacity(0.62) : Colors.transparent,
                                 BlendMode.srcOver,
                               ),
                               child: FlutterMap(
                                 mapController: mapController,
                                 options: MapOptions(
-                                    initialCenter: LatLng(52.23202828872916,
-                                        21.006132649819673), // Warsaw
+                                    initialCenter: LatLng(52.23202828872916, 21.006132649819673), // Warsaw
                                     initialZoom: 13,
-                                    interactionOptions: InteractionOptions(
-                                        flags: uploadedGpxObject != null
-                                            ? InteractiveFlag.all
-                                            : InteractiveFlag.none)),
+                                    interactionOptions:
+                                        InteractionOptions(flags: uploadedGpxObject != null ? InteractiveFlag.all : InteractiveFlag.none)),
                                 children: [
                                   openStreetMapTileLayer,
                                   PolylineLayer(
                                     polylines: [
                                       Polyline(
                                         points: uploadedGpxObject != null
-                                            ? uploadedGpxObject!
-                                                .trks.first.trksegs.first.trkpts
-                                                .where((element) =>
-                                                    element.lat != null &&
-                                                    element.lon != null)
-                                                .map((e) =>
-                                                    LatLng(e.lat!, e.lon!))
+                                            ? uploadedGpxObject!.trks.first.trksegs.first.trkpts
+                                                .where((element) => element.lat != null && element.lon != null)
+                                                .map((e) => LatLng(e.lat!, e.lon!))
                                                 .toList()
                                             : [],
                                         strokeWidth: 3,
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .primary,
+                                        color: Theme.of(context).colorScheme.primary,
                                       ),
                                     ],
                                   ),
@@ -378,17 +380,24 @@ class _CreateRacePageState extends State<CreateRacePage> {
                         ),
                         Padding(
                           padding: EdgeInsets.all(16.0),
-                          child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
+                          child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                            Row(
                               children: [
-                                Row(
-                                  children: [
-                                    FilledButton(
+                                FormField<String>(
+                                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                                  validator: (v) {
+                                    var result = v == null ? "Nie ustawiono trasy wyścigu." : null;
+                                    if (result != null) {
+                                      setState(() {
+                                        gpxErrorMessage = "Nie ustawiono trasy wyścigu.";
+                                      });
+                                    }
+                                    return result;
+                                  },
+                                  builder: (FormFieldState state) {
+                                    return FilledButton(
                                       onPressed: () async {
-                                        FilePickerResult? picked =
-                                            await FilePickerWeb.platform
-                                                .pickFiles(
+                                        FilePickerResult? picked = await FilePickerWeb.platform.pickFiles(
                                           type: FileType.custom,
                                           allowedExtensions: ['gpx'],
                                         );
@@ -402,36 +411,30 @@ class _CreateRacePageState extends State<CreateRacePage> {
                                         var bytes = picked.files.single.bytes!;
 
                                         FormData formData = FormData.fromMap({
-                                          "fileobj": MultipartFile.fromBytes(
-                                              bytes,
-                                              filename:
-                                                  picked.files.first.name),
+                                          "fileobj": MultipartFile.fromBytes(bytes, filename: picked.files.first.name),
                                           "name": picked.files.first.name
                                         });
-                                        var response = await dio.post(
-                                            "http://127.0.0.11:5050/api/upload-test/",
-                                            data: formData);
+                                        try {
+                                          var response = await dio.post("http://127.0.0.11:5050/api/upload-test/", data: formData);
+                                          final Map<String, dynamic> uploadedFileMeta = response.data;
+                                          print(response.data);
 
-                                        print(response.statusCode);
-                                        print(response.data);
-                                        if (response.statusCode == 200) {
-                                          final Map<String, dynamic>
-                                              uploadedFileMeta = response.data;
                                           setState(() {
-                                            uploadedGpxFilePath =
-                                                uploadedFileMeta[
-                                                    'fileobj.path'];
-                                            print(
-                                                "PATH IS ${uploadedGpxFilePath}");
-                                            uploadedGpxObject = GpxReader()
-                                                .fromString(utf8.decode(bytes));
-                                            points = uploadedGpxObject!.trks
-                                                .first.trksegs.first.trkpts;
-                                            print(
-                                                "GPX has ${points.length} trackpoints");
+                                            uploadedGpxFilePath = uploadedFileMeta['fileobj.path'];
+                                            print("PATH IS ${uploadedGpxFilePath}");
+                                            uploadedGpxObject = GpxReader().fromString(utf8.decode(bytes));
+                                            points = uploadedGpxObject!.trks.first.trksegs.first.trkpts;
+                                            print("GPX has ${points.length} trackpoints");
 
                                             fitMap();
+                                            state.setValue(uploadedGpxFilePath);
+                                            gpxErrorMessage = null;
                                           });
+                                        } on DioException catch (e) {
+                                          print(e.response?.statusCode);
+                                          print(e.response?.data);
+                                          showNotification(context, "Błąd podczas przesyłania pliku.");
+                                          return;
                                         }
                                       },
                                       child: const Row(
@@ -443,29 +446,33 @@ class _CreateRacePageState extends State<CreateRacePage> {
                                           Text('Prześlij plik GPX')
                                         ],
                                       ),
-                                    ),
-                                    SizedBox(
-                                      width: 8,
-                                    ),
-                                    Visibility(
-                                        visible: uploadedGpxFilePath != null &&
-                                            uploadedGpxFilePath!.isNotEmpty,
-                                        child: Text(
-                                          uploadedGpxFilePath != null
-                                              ? uploadedGpxFilePath!
-                                              : "",
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .titleMedium
-                                              ?.copyWith(
-                                                  color: Theme.of(context)
-                                                      .colorScheme
-                                                      .onSurface
-                                                      .withAlpha(128)),
-                                        ))
-                                  ],
+                                    );
+                                  },
                                 ),
-                              ]),
+                                SizedBox(
+                                  width: 8,
+                                ),
+                                Visibility(
+                                    visible: uploadedGpxFilePath != null && uploadedGpxFilePath!.isNotEmpty,
+                                    child: Text(
+                                      uploadedGpxFilePath != null ? uploadedGpxFilePath! : "",
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium
+                                          ?.copyWith(color: Theme.of(context).colorScheme.onSurface.withAlpha(128)),
+                                    ))
+                              ],
+                            ),
+                            Visibility(
+                                visible: gpxErrorMessage != null,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    gpxErrorMessage != null ? gpxErrorMessage! : "",
+                                    style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Theme.of(context).colorScheme.error),
+                                  ),
+                                ))
+                          ]),
                         ),
                       ],
                     ),
@@ -474,28 +481,25 @@ class _CreateRacePageState extends State<CreateRacePage> {
                   Card(
                     child: Padding(
                       padding: EdgeInsets.all(16.0),
-                      child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            SizedBox(
-                              height: 12,
-                            ),
-                            Text(
-                              "Liczba okrążeń",
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            SizedBox(
-                              height: 4,
-                            ),
-                            NumericStepButton(
-                              minValue: 1,
-                              maxValue: 99,
-                              onChanged: (val) {
-                                noLaps = val;
-                              },
-                            ),
-                          ]),
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                        SizedBox(
+                          height: 12,
+                        ),
+                        Text(
+                          "Liczba okrążeń",
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        SizedBox(
+                          height: 4,
+                        ),
+                        NumericStepButton(
+                          minValue: 1,
+                          maxValue: 99,
+                          onChanged: (val) {
+                            noLaps = val;
+                          },
+                        ),
+                      ]),
                     ),
                   ),
                   SizedBox(height: 24.0),
@@ -510,57 +514,71 @@ class _CreateRacePageState extends State<CreateRacePage> {
                   Card(
                     child: Padding(
                       padding: EdgeInsets.all(16.0),
-                      child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                        Row(
                           children: [
-                            Row(
-                              children: [
-                                Flexible(
-                                  child: FormField<DateTime>(
-                                      builder: (FormFieldState state) {
-                                    return InkWell(
-                                      onTap: () async {
-                                        var picked_s =
-                                            await _selectDate(context,
-                                            initialDate: startDateTime);
-                                        if (picked_s != null &&
-                                            picked_s != startDateTime)
-                                          setState(() {
-                                            startDateTime =
-                                                startDateTime.copyWith(
-                                                    day: picked_s.day,
-                                                    month: picked_s.month,
-                                                    year: picked_s.year);
-                                            endDateTime =
-                                                startDateTime.copyWith(
-                                                    day: picked_s.day,
-                                                    month: picked_s.month,
-                                                    year: picked_s.year);
-                                          });
-                                      },
-                                      child: InputDecorator(
-                                        decoration: InputDecoration(
-                                          icon: Icon(Icons.calendar_month),
-                                          border: OutlineInputBorder(),
-                                          errorText: state.errorText,
-                                        ),
-                                        child: Text(
-                                            "${DateFormat.EEEE("pl_PL").format(startDateTime).capitalize()}, ${DateFormat.MMMMd("pl_PL").format(startDateTime)}"),
+                            Flexible(
+                              child: FormField<DateTime>(
+                                autovalidateMode: AutovalidateMode.always,
+                                validator: (v) {
+                                  return v != null && !DateUtils.isSameDay(v, DateTime.now()) && v.isBefore(DateTime.now())
+                                      ? "Nie można wybrać daty z przeszłości"
+                                      : null;
+                                },
+                                builder: (FormFieldState state) {
+                                  return InkWell(
+                                    onTap: () async {
+                                      var picked_s = await _selectDate(context, initialDate: startDateTime);
+                                      if (picked_s != null && picked_s != startDateTime)
+                                        setState(() {
+                                          startDateTime =
+                                              startDateTime.copyWith(day: picked_s.day, month: picked_s.month, year: picked_s.year);
+                                          endDateTime =
+                                              startDateTime.copyWith(day: picked_s.day, month: picked_s.month, year: picked_s.year);
+                                          state.setValue(startDateTime);
+                                        });
+                                    },
+                                    child: InputDecorator(
+                                      decoration: InputDecoration(
+                                        icon: Icon(Icons.calendar_month),
+                                        border: OutlineInputBorder(),
+                                        errorText: state.errorText,
                                       ),
-                                    );
-                                  }),
-                                ),
-                                SizedBox(width: 64,),
-                                Icon(Icons.schedule),
-                                SizedBox(width: 16,),
-                                Flexible(
-                                  child: FormField<Map<DateTime, DateTime>>(
-                                      builder: (FormFieldState state) {
+                                      child: Text(
+                                          "${DateFormat.EEEE("pl_PL").format(startDateTime).capitalize()}, ${DateFormat.MMMMd("pl_PL").format(startDateTime)}"),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            SizedBox(
+                              width: 64,
+                            ),
+                            Icon(Icons.schedule),
+                            SizedBox(
+                              width: 16,
+                            ),
+                            Flexible(
+                              child: FormField<Map<DateTime, DateTime>>(
+                                  initialValue: {startDateTime: endDateTime},
+                                  autovalidateMode: AutovalidateMode.always,
+                                  validator: (v) {
+                                    if (v == null) return null;
+                                    var start = v.keys.first;
+                                    var end = v.values.first;
+                                    if (!end.isAfter(start)) {
+                                      return "Niepoprawny czas trwania.";
+                                    }
+                                    if (end.isBefore(DateTime.now()) || start.isBefore(DateTime.now())) {
+                                      return "Nie można wybrać godzin z przeszłości.";
+                                    }
+                                    return null;
+                                  },
+                                  builder: (FormFieldState state) {
                                     return InputDecorator(
                                       decoration: InputDecoration(
-                                          isDense: true,
-                                          contentPadding: EdgeInsets.zero,
+                                        isDense: true,
+                                        contentPadding: EdgeInsets.zero,
                                         border: OutlineInputBorder(),
                                         errorText: state.errorText,
                                       ),
@@ -568,127 +586,116 @@ class _CreateRacePageState extends State<CreateRacePage> {
                                         children: [
                                           InkWell(
                                             onTap: () async {
-                                              var picked_s = await _selectTime(
-                                                  context,
+                                              var picked_s = await _selectTime(context,
                                                   hintText: "Godzina rozpoczęcia",
                                                   initialTime: TimeOfDay(hour: startDateTime.hour, minute: startDateTime.minute));
-                                              if (picked_s != null &&
-                                                  picked_s != startDateTime) {
+                                              if (picked_s != null && picked_s != startDateTime) {
                                                 setState(() {
-                                                  startDateTime =
-                                                      startDateTime.copyWith(
-                                                          hour: picked_s.hour,
-                                                          minute: picked_s.minute);
+                                                  startDateTime = startDateTime.copyWith(hour: picked_s.hour, minute: picked_s.minute);
                                                 });
+                                                state.setValue({startDateTime: endDateTime});
                                               }
                                             },
                                             child: Padding(
-                                              padding: const EdgeInsets.symmetric(
-                                                vertical: 20,
-                                                horizontal: 12
-                                              ),
-                                              child: Text(DateFormat.Hm("pl_PL")
-                                                  .format(startDateTime)
-                                                  .capitalize()),
+                                              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+                                              child: Text(DateFormat.Hm("pl_PL").format(startDateTime).capitalize()),
                                             ),
                                           ),
                                           Text("-"),
                                           InkWell(
                                             onTap: () async {
-                                              var picked_s = await _selectTime(
-                                                  context,
+                                              var picked_s = await _selectTime(context,
                                                   hintText: "Godzina zakończenia",
                                                   initialTime: TimeOfDay(hour: endDateTime.hour, minute: endDateTime.minute));
-                                              if (picked_s != null &&
-                                                  picked_s != endDateTime) {
+                                              if (picked_s != null && picked_s != endDateTime) {
                                                 setState(() {
-                                                  endDateTime =
-                                                      endDateTime.copyWith(
-                                                          hour: picked_s.hour,
-                                                          minute: picked_s.minute);
+                                                  endDateTime = endDateTime.copyWith(hour: picked_s.hour, minute: picked_s.minute);
                                                 });
+                                                state.setValue({startDateTime: endDateTime});
                                               }
                                             },
                                             child: Padding(
-                                              padding: const EdgeInsets.symmetric(
-                                                  vertical: 20,
-                                                  horizontal: 12
-                                              ),
-                                              child: Text(
-                                                  DateFormat.Hm("pl_PL")
-                                                      .format(endDateTime)),
+                                              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+                                              child: Text(DateFormat.Hm("pl_PL").format(endDateTime)),
                                             ),
                                           ),
                                         ],
                                       ),
                                     );
                                   }),
-                                ),
-                              ],
                             ),
+                          ],
+                        ),
+                        SizedBox(
+                          height: 8,
+                        ),
+                        Row(
+                          children: [
+                            Switch(
+                                value: isAddMeetupHourChecked,
+                                onChanged: (val) {
+                                  setState(() {
+                                    isAddMeetupHourChecked = val;
+                                  });
+                                }),
                             SizedBox(
-                              height: 8,
+                              width: 8,
                             ),
-                            Row(
-                              children: [
-                                Switch(
-                                    value: isAddMeetupHourChecked,
-                                    onChanged: (val) {
-                                      setState(() {
-                                        isAddMeetupHourChecked = val;
-                                      });
-                                    }),
-                                SizedBox(
-                                  width: 8,
-                                ),
-                                Text(
-                                  "Dodaj godzinę zbiórki",
-                                  style: Theme.of(context).textTheme.labelLarge,
-                                )
-                              ],
-                            ),
-                            Visibility(
-                              visible: isAddMeetupHourChecked,
-                              child: Column(
-                                children: [
-                                  SizedBox(
-                                    height: 8,
-                                  ),
-                                  IntrinsicWidth(
-                                    child: FormField<Map<DateTime, DateTime>>(
-                                        builder: (FormFieldState state) {
-                                          return InkWell(
-                                            onTap: () async {
-                                              var picked_s = await _selectTime(context,
-                                                  hintText: "Czas zakończenia",
-                                                  initialTime: TimeOfDay(hour: meetupDateTime.hour, minute: meetupDateTime.minute));
-                                              if (picked_s != null &&
-                                                  picked_s != meetupDateTime) {
-                                                setState(() {
-                                                  meetupDateTime =
-                                                      startDateTime.copyWith(
-                                                          hour: picked_s.hour,
-                                                          minute: picked_s.minute);
-                                                });
-                                              }
-                                            },
-                                            child: InputDecorator(
-                                              decoration: InputDecoration(
-                                                border: OutlineInputBorder(),
-                                                errorText: state.errorText,
-                                                icon: Icon(Icons.schedule),
-                                              ),
-                                              child: Text(DateFormat.Hm("pl_PL")
-                                                  .format(meetupDateTime)
-                                                  .capitalize()),
-                                            ),
-                                          );
-                                        }),
-                                  ),
-                                ],
+                            Text(
+                              "Dodaj godzinę zbiórki",
+                              style: Theme.of(context).textTheme.labelLarge,
+                            )
+                          ],
+                        ),
+                        Visibility(
+                          visible: isAddMeetupHourChecked,
+                          child: Column(
+                            children: [
+                              SizedBox(
+                                height: 8,
                               ),
-                            ),
-                          ]),
+                              IntrinsicWidth(
+                                child: FormField<DateTime>(
+                                    initialValue: meetupDateTime,
+                                    autovalidateMode: AutovalidateMode.always,
+                                    validator: (v) {
+                                      if (v == null) return null;
+                                      if (v.isAfter(startDateTime)) {
+                                        return "Błąd.";
+                                      }
+                                      if (meetupDateTime.isBefore(DateTime.now())) {
+                                        return "Błąd.";
+                                      }
+                                      return null;
+                                    },
+                                    builder: (FormFieldState state) {
+                                      return InkWell(
+                                        onTap: () async {
+                                          var picked_s = await _selectTime(context,
+                                              hintText: "Czas zakończenia",
+                                              initialTime: TimeOfDay(hour: meetupDateTime.hour, minute: meetupDateTime.minute));
+                                          if (picked_s != null && picked_s != meetupDateTime) {
+                                            setState(() {
+                                              meetupDateTime = startDateTime.copyWith(hour: picked_s.hour, minute: picked_s.minute);
+                                              state.setValue(meetupDateTime);
+                                            });
+                                          }
+                                        },
+                                        child: InputDecorator(
+                                          decoration: InputDecoration(
+                                            border: OutlineInputBorder(),
+                                            errorText: state.errorText,
+                                            icon: Icon(Icons.schedule),
+                                          ),
+                                          child: Text(DateFormat.Hm("pl_PL").format(meetupDateTime).capitalize()),
+                                        ),
+                                      );
+                                    }),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ]),
                     ),
                   ),
                   SizedBox(height: 24.0),
@@ -703,158 +710,140 @@ class _CreateRacePageState extends State<CreateRacePage> {
                   Card(
                     child: Padding(
                       padding: EdgeInsets.all(16.0),
-                      child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                        ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: placeToPointsMapping.length - 1,
+                            itemBuilder: (context, index) {
+                              var keysSorted = placeToPointsMapping.keys.where((element) => element != LAST_PLACE).toList();
+                              keysSorted.sort();
+                              var key = keysSorted[index];
+                              return IntrinsicHeight(
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Expanded(
+                                        child: Text(
+                                      (index == placeToPointsMapping.length - 1 || key == 1 ? "" : "≤ ") + key.toString(),
+                                      textAlign: TextAlign.end,
+                                    )),
+                                    VerticalDivider(
+                                      width: 20,
+                                      indent: 5,
+                                      endIndent: 5,
+                                    ),
+                                    Expanded(
+                                      child: Text(placeToPointsMapping[key].toString() + " pkt."),
+                                    ),
+                                    SizedBox(width: 32),
+                                    IconButton(
+                                        onPressed: () {
+                                          setState(() {
+                                            placeToPointsMapping.remove(key);
+                                          });
+                                        },
+                                        icon: Icon(Icons.remove_circle_outline))
+                                  ],
+                                ),
+                              );
+                            }),
+                        IntrinsicHeight(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SizedBox(width: 48),
+                              Expanded(
+                                  child: Text(
+                                "Dowolne",
+                                textAlign: TextAlign.end,
+                              )),
+                              VerticalDivider(
+                                width: 20,
+                                indent: 5,
+                                endIndent: 5,
+                              ),
+                              SizedBox(
+                                width: 48,
+                                child: TextFormField(
+                                  controller: lastPlacePointsController,
+                                  keyboardType: TextInputType.number,
+                                  inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
+                                  autovalidateMode: AutovalidateMode.always,
+                                  validator: (v) {
+                                    var parsed = v != null && lastPlacePointsController.text != "" ? int.parse(v) : 0;
+                                    placeToPointsMapping[LAST_PLACE] = parsed;
+                                    return v != null &&
+                                            placeToPointsMapping.length > 1 &&
+                                            v.isNotEmpty &&
+                                            parsed >= placeToPointsMapping.values.where((e) => e != parsed).reduce(min)
+                                        ? "Błąd."
+                                        : null;
+                                  },
+                                  onTapOutside: (v) {
+                                    FocusScope.of(context).unfocus();
+                                    setState(() {
+                                      if (lastPlacePointsController.text == "") {
+                                        placeToPointsMapping[LAST_PLACE] = 0;
+                                        lastPlacePointsController.text = "0";
+                                      } else {
+                                        placeToPointsMapping[LAST_PLACE] = int.parse(lastPlacePointsController.text);
+                                      }
+                                    });
+                                  },
+                                ),
+                              ),
+                              SizedBox(width: 72),
+                              Spacer()
+                            ],
+                          ),
+                        ),
+                        Text(
+                          "Dodaj próg",
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        SizedBox(
+                          height: 8,
+                        ),
+                        Row(
+                          // mainAxisSize: MainAxisSize.min,
                           children: [
-                            ListView.builder(
-                                shrinkWrap: true,
-                                itemCount: placeToPointsMapping.length - 1,
-                                itemBuilder: (context, index) {
-                                  var keysSorted = placeToPointsMapping.keys
-                                      .where((element) => element != LAST_PLACE)
-                                      .toList();
-                                  keysSorted.sort();
-                                  var key = keysSorted[index];
-                                  return IntrinsicHeight(
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Expanded(
-                                            child: Text(
-                                          (index ==
-                                                          placeToPointsMapping
-                                                                  .length -
-                                                              1 ||
-                                                      key == 1
-                                                  ? ""
-                                                  : "≤ ") +
-                                              key.toString(),
-                                          textAlign: TextAlign.end,
-                                        )),
-                                        VerticalDivider(
-                                          width: 20,
-                                          indent: 5,
-                                          endIndent: 5,
-                                        ),
-                                        Expanded(
-                                          child: Text(placeToPointsMapping[key]
-                                                  .toString() +
-                                              " pkt."),
-                                        ),
-                                        SizedBox(width: 32),
-                                        IconButton(
-                                            onPressed: () {
-                                              setState(() {
-                                                placeToPointsMapping
-                                                    .remove(key);
-                                              });
-                                            },
-                                            icon: Icon(
-                                                Icons.remove_circle_outline))
-                                      ],
-                                    ),
-                                  );
-                                }),
-                            IntrinsicHeight(
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  SizedBox(width: 48),
-                                  Expanded(
-                                      child: Text(
-                                    "Dowolne",
-                                    textAlign: TextAlign.end,
-                                  )),
-                                  VerticalDivider(
-                                    width: 20,
-                                    indent: 5,
-                                    endIndent: 5,
-                                  ),
-                                  SizedBox(
-                                    width: 48,
-                                    child: TextFormField(
-                                      controller: lastPlacePointsController,
-                                      keyboardType: TextInputType.number,
-                                      inputFormatters: <TextInputFormatter>[
-                                        FilteringTextInputFormatter.digitsOnly
-                                      ],
-                                      onTapOutside: (v) {
-                                        FocusScope.of(context).unfocus();
-                                        placeToPointsMapping[LAST_PLACE] =
-                                            int.parse(
-                                                lastPlacePointsController.text);
-                                      },
-                                    ),
-                                  ),
-                                  SizedBox(width: 72),
-                                  Spacer()
-                                ],
+                            Flexible(
+                              child: TextField(
+                                controller: placeToPointsMappingKeyController,
+                                keyboardType: TextInputType.number,
+                                inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
+                                minLines: 1,
+                                maxLines: 1,
+                                decoration: InputDecoration(border: OutlineInputBorder(), hintText: "Miejsce (minimum)"),
                               ),
                             ),
-                            Text(
-                              "Dodaj próg",
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
                             SizedBox(
-                              height: 8,
+                              width: 8,
                             ),
-                            Row(
-                              // mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Flexible(
-                                  child: TextFormField(
-                                    controller:
-                                        placeToPointsMappingKeyController,
-                                    keyboardType: TextInputType.number,
-                                    inputFormatters: <TextInputFormatter>[
-                                      FilteringTextInputFormatter.digitsOnly
-                                    ],
-                                    minLines: 1,
-                                    maxLines: 1,
-                                    decoration: InputDecoration(
-                                        border: OutlineInputBorder(),
-                                        hintText: "Miejsce (minimum)"),
-                                  ),
-                                ),
-                                SizedBox(
-                                  width: 8,
-                                ),
-                                Flexible(
-                                  child: TextFormField(
-                                    controller:
-                                        placeToPointsMappingValueController,
-                                    keyboardType: TextInputType.number,
-                                    inputFormatters: <TextInputFormatter>[
-                                      FilteringTextInputFormatter.digitsOnly
-                                    ],
-                                    minLines: 1,
-                                    maxLines: 1,
-                                    decoration: InputDecoration(
-                                        border: OutlineInputBorder(),
-                                        hintText: "Punkty",
-                                        suffixText: "pkt."),
-                                  ),
-                                ),
-                                SizedBox(width: 32),
-                                IconButton(
-                                    onPressed: () {
-                                      setState(() {
-                                        placeToPointsMapping[int.parse(
-                                            placeToPointsMappingKeyController
-                                                .text)] = int.parse(
-                                            placeToPointsMappingValueController
-                                                .text);
-                                        placeToPointsMappingKeyController
-                                            .clear();
-                                        placeToPointsMappingValueController
-                                            .clear();
-                                      });
-                                    },
-                                    icon: Icon(Icons.add_circle_outline))
-                              ],
+                            Flexible(
+                              child: TextField(
+                                controller: placeToPointsMappingValueController,
+                                keyboardType: TextInputType.number,
+                                inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
+                                minLines: 1,
+                                maxLines: 1,
+                                decoration: InputDecoration(border: OutlineInputBorder(), hintText: "Punkty", suffixText: "pkt."),
+                              ),
                             ),
-                          ]),
+                            SizedBox(width: 32),
+                            IconButton(
+                                onPressed: () {
+                                  setState(() {
+                                    placeToPointsMapping[int.parse(placeToPointsMappingKeyController.text)] =
+                                        int.parse(placeToPointsMappingValueController.text);
+                                    placeToPointsMappingKeyController.clear();
+                                    placeToPointsMappingValueController.clear();
+                                  });
+                                },
+                                icon: Icon(Icons.add_circle_outline))
+                          ],
+                        ),
+                      ]),
                     ),
                   ),
                 ],
@@ -873,36 +862,34 @@ class _CreateRacePageState extends State<CreateRacePage> {
                             setState(() {
                               isLoading = true;
                             });
+
+                            if (!_formKey.currentState!.validate()) {
+                              showNotification(context, 'Formularz zawiera błąd.');
+                              setState(() {
+                                isLoading = false;
+                              });
+                              return;
+                            }
                             var requestData = {
                               "name": nameEditingController.text,
                               "description": descriptionEditingController.text,
-                              "requirements":
-                                  requirementsEditingController.text,
-                              "meetup_timestamp": isAddMeetupHourChecked
-                                  ? meetupDateTime.toIso8601String()
-                                  : null,
-                              "start_timestamp":
-                                  startDateTime.toIso8601String(),
+                              "requirements": requirementsEditingController.text,
+                              "meetup_timestamp": isAddMeetupHourChecked ? meetupDateTime.toIso8601String() : null,
+                              "start_timestamp": startDateTime.toIso8601String(),
                               "end_timestamp": endDateTime.toIso8601String(),
-                              "entry_fee_gr": isAddEntryFeeChecked
-                                  ? int.parse(entryFeeEditingController.text) *
-                                      100
-                                  : 0,
+                              "entry_fee_gr": isAddEntryFeeChecked ? int.parse(entryFeeEditingController.text) * 100 : 0,
                               "no_laps": noLaps,
-                              // FIXME hardcoded for now
-                              "place_to_points_mapping_json":
-                                  '[{"place": 1,"points": 20}, {"place": 999,"points": 0}]',
+                              "checkpoints_gpx_file": uploadedGpxFilePath,
+                              "event_graphic_file": eventGraphicFilePath,
+                              "place_to_points_mapping_json": "[" + placeToPointsMapping.entries.map((e) => '{"place": ${e.key},"points": ${e.value}}').join(", ") + "]",
                               "sponsor_banners_uuids_json": "[]",
                               "season_id": 1
                             };
                             try {
-                              var response = await dio.post(
-                                  '${settings.apiBaseUrl}/api/coordinator/race/create',
-                                  data: requestData);
+                              var response = await dio.post('${settings.apiBaseUrl}/api/coordinator/race/create', data: requestData);
                               print(response.statusCode);
                               print(response.data);
-                              showNotification(context,
-                                  'Utworzono wyścig ${nameEditingController.text}!');
+                              showNotification(context, 'Utworzono wyścig ${nameEditingController.text}!');
                               setState(() {
                                 successfullyCreated = true;
                               });
@@ -916,6 +903,7 @@ class _CreateRacePageState extends State<CreateRacePage> {
                               setState(() {
                                 isLoading = false;
                               });
+                              showNotification(context, 'Błąd podczas tworzenia wyścigu.');
                             }
                           },
                     child: Row(
@@ -940,16 +928,12 @@ class _CreateRacePageState extends State<CreateRacePage> {
   void fitMap() {
     mapController.fitCamera(
       CameraFit.bounds(
-          bounds: LatLngBounds.fromPoints(points
-              .where((e) => e.lat != null && e.lon != null)
-              .map((e) => LatLng(e.lat!, e.lon!))
-              .toList()),
+          bounds: LatLngBounds.fromPoints(points.where((e) => e.lat != null && e.lon != null).map((e) => LatLng(e.lat!, e.lon!)).toList()),
           padding: EdgeInsets.all(32)),
     );
   }
 
-  Future<TimeOfDay?> _selectTime(BuildContext context,
-      {String? hintText, TimeOfDay? initialTime}) async {
+  Future<TimeOfDay?> _selectTime(BuildContext context, {String? hintText, TimeOfDay? initialTime}) async {
     TimeOfDay selectedTime = initialTime ?? TimeOfDay.now();
     final TimeOfDay? picked_s = await showTimePicker(
         context: context,
@@ -957,9 +941,7 @@ class _CreateRacePageState extends State<CreateRacePage> {
         helpText: hintText,
         builder: (BuildContext context, Widget? child) {
           return MediaQuery(
-            data: MediaQuery.of(context)
-                .copyWith(alwaysUse24HourFormat: false)
-                .copyWith(
+            data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: false).copyWith(
                   alwaysUse24HourFormat: true,
                 ),
             child: child!,
@@ -977,9 +959,7 @@ class _CreateRacePageState extends State<CreateRacePage> {
         initialDate: selectedDate,
         builder: (BuildContext context, Widget? child) {
           return MediaQuery(
-            data: MediaQuery.of(context)
-                .copyWith(alwaysUse24HourFormat: false)
-                .copyWith(
+            data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: false).copyWith(
                   alwaysUse24HourFormat: true,
                 ),
             child: child!,
