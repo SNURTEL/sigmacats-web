@@ -11,7 +11,7 @@ WORKDIR /app/
 # define variables
 ARG FLUTTER_SDK=/usr/local/flutter
 ARG FLUTTER_VERSION=3.16.2
-ARG APP=/code/
+ARG APP=/code
 
 #clone flutter
 RUN git clone --depth=1 --branch $FLUTTER_VERSION https://github.com/flutter/flutter.git $FLUTTER_SDK
@@ -34,9 +34,9 @@ WORKDIR $APP
 # Run build: 1 - clean, 2 - pub get, 3 - build web
 RUN flutter clean
 RUN flutter pub get
+COPY /app/.env.sample $APP/.env
 RUN flutter build web
 
-COPY /app/.env $APP
 
 
 # use nginx to deploy
