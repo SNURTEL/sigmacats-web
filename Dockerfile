@@ -29,6 +29,7 @@ RUN flutter doctor -v
 RUN mkdir $APP
 # copy source code to folder
 COPY app $APP
+COPY nginx.conf $APP/nginx.conf
 # stup new folder as the working directory
 WORKDIR $APP
 # Run build: 1 - clean, 2 - pub get, 3 - build web
@@ -43,9 +44,11 @@ COPY /app/.env.sample $APP/.env
 FROM nginx:1.25.2-alpine
 
 # copy the info of the builded web app to nginx
+RUN rm /etc/nginx/nginx.conf
+COPY --from=build-env /code/nginx.conf /etc/nginx/nginx.conf
 COPY --from=build-env /code/build/web /usr/share/nginx/html
 COPY --from=build-env /code/.env /usr/share/nginx/html
 
 # Expose and run nginx
 EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+ENTRYPOINT ["nginx-debug", "-g", "daemon off;"]
