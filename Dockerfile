@@ -35,9 +35,9 @@ WORKDIR $APP
 # Run build: 1 - clean, 2 - pub get, 3 - build web
 RUN flutter clean
 RUN flutter pub get
+COPY /app/.env.sample $APP/.env
 RUN flutter build web
 
-COPY /app/.env.sample $APP/.env
 
 
 # use nginx to deploy
