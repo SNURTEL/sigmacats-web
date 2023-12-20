@@ -52,6 +52,8 @@ class _CreateRacePageState extends State<CreateRacePage> {
   String? eventGraphicFilePath;
   Uint8List? eventGraphicBytes;
 
+  Map<String, Uint8List> sponsorBanners = {};
+
   DateTime startDateTime = clipDay(DateTime.now().copyWith(second: 0, millisecond: 0, microsecond: 0).add(Duration(hours: 1)));
   DateTime endDateTime = clipDay(DateTime.now().copyWith(second: 0, millisecond: 0, microsecond: 0).add(Duration(hours: 3)));
   DateTime meetupDateTime = clipDay(DateTime.now().copyWith(second: 0, millisecond: 0, microsecond: 0).add(Duration(hours: 1)));
@@ -147,7 +149,7 @@ class _CreateRacePageState extends State<CreateRacePage> {
                         FormField<String>(
                           autovalidateMode: AutovalidateMode.onUserInteraction,
                           validator: (v) {
-                            var res = v == null || v.isEmpty  ? "Nie wybrano grafiki wydarzenia." : null;
+                            var res = v == null || v.isEmpty ? "Nie wybrano grafiki wydarzenia." : null;
                             eventGraphicErrorMessage = res;
                             return res;
                           },
@@ -172,7 +174,8 @@ class _CreateRacePageState extends State<CreateRacePage> {
                                   "name": picked.files.first.name
                                 });
                                 try {
-                                  var response = await dio.post("http://127.0.0.11:5050/api/upload-test/", data: formData);
+                                  var response =
+                                      await dio.post("http://127.0.0.11:5050/api/coordinator/race/create/upload-graphic/", data: formData);
                                   print(response.data);
                                   var uploadedFileMeta = response.data;
                                   setState(() {
@@ -415,7 +418,8 @@ class _CreateRacePageState extends State<CreateRacePage> {
                                           "name": picked.files.first.name
                                         });
                                         try {
-                                          var response = await dio.post("http://127.0.0.11:5050/api/upload-test/", data: formData);
+                                          var response = await dio.post("http://127.0.0.11:5050/api/coordinator/race/create/upload-route/",
+                                              data: formData);
                                           final Map<String, dynamic> uploadedFileMeta = response.data;
                                           print(response.data);
 
@@ -846,6 +850,96 @@ class _CreateRacePageState extends State<CreateRacePage> {
                       ]),
                     ),
                   ),
+                  SizedBox(height: 24.0),
+                  Align(
+                    alignment: Alignment.topLeft,
+                    child: Text(
+                      "Sponsorzy",
+                      style: Theme.of(context).textTheme.headlineLarge,
+                    ),
+                  ),
+                  SizedBox(height: 24.0),
+                  ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: sponsorBanners.length,
+
+                    itemBuilder: (context, index) {
+                      var key = sponsorBanners.keys.toList()[index];
+                      return IntrinsicHeight(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Expanded(
+                                // constraints: BoxConstraints(maxWidth: 400),
+                                child: FittedBox(
+                                    fit: BoxFit.cover,
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(16),
+                                        child: Image.memory(
+                                      sponsorBanners[key]!,
+                                      fit: BoxFit.fill,
+                                    ))),
+                              ),
+                              IconButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      sponsorBanners.remove(key);
+                                    });
+                                  },
+                                  icon: Icon(Icons.remove_circle_outline))
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  Card(
+                    child: InkWell(
+                      onTap: () async {
+                        FilePickerResult? picked = await FilePickerWeb.platform.pickFiles(
+                          type: FileType.custom,
+                          allowedExtensions: ['jpg', 'jpeg', 'png'],
+                        );
+
+                        if (picked == null) {
+                          print("No file picked");
+                          return;
+                        }
+
+                        print(picked.files.first.name);
+                        var bytes = picked.files.single.bytes!;
+
+                        FormData formData = FormData.fromMap({
+                          "fileobj": MultipartFile.fromBytes(bytes, filename: picked.files.first.name),
+                          "name": picked.files.first.name
+                        });
+                        try {
+                          var response =
+                              await dio.post("http://127.0.0.11:5050/api/coordinator/race/create/upload-graphic/", data: formData);
+                          print(response.data);
+                          var uploadedFileMeta = response.data;
+                          var path = uploadedFileMeta['fileobj.path'];
+                          setState(() {
+                            sponsorBanners[path] = bytes;
+                          });
+                        } on DioException catch (e) {
+                          print(e.response?.statusCode);
+                          print(e.response?.data);
+                          showNotification(context, "Błąd podczas przesyłania pliku.");
+
+                          return;
+                        }
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Row(
+                          children: [Spacer(), Icon(Icons.add_circle_outline), SizedBox(width: 8), Text("Dodaj baner"), Spacer()],
+                        ),
+                      ),
+                    ),
+                  )
                 ],
               ),
             ),
@@ -881,8 +975,10 @@ class _CreateRacePageState extends State<CreateRacePage> {
                               "no_laps": noLaps,
                               "checkpoints_gpx_file": uploadedGpxFilePath,
                               "event_graphic_file": eventGraphicFilePath,
-                              "place_to_points_mapping_json": "[" + placeToPointsMapping.entries.map((e) => '{"place": ${e.key},"points": ${e.value}}').join(", ") + "]",
-                              "sponsor_banners_uuids_json": "[]",
+                              "place_to_points_mapping_json": "[" +
+                                  placeToPointsMapping.entries.map((e) => '{"place": ${e.key},"points": ${e.value}}').join(", ") +
+                                  "]",
+                              "sponsor_banners_uuids_json": "[${sponsorBanners.keys.map((e) => '"${e}"').join(', ')}]",
                               "season_id": 1
                             };
                             try {
