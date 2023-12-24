@@ -48,7 +48,7 @@ class App extends StatelessWidget {
     GoRoute(
       path: '/login',
       pageBuilder: (BuildContext context, GoRouterState state) {
-        return tweenWarpper(context, state, LoginPage());
+        return tweenWarpper(context, state, Scaffold(body: LoginPage()));
       },
     ),
   ]);
