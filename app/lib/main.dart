@@ -11,6 +11,7 @@ import 'package:intl/date_symbol_data_local.dart';
 
 import 'settings.dart' as settings;
 import 'package:app/HomePage.dart';
+import 'package:app/LoginPage.dart';
 
 void main() async {
   await dotenv.load(fileName: "../.env");
@@ -41,9 +42,15 @@ class App extends StatelessWidget {
           pageBuilder: (BuildContext context, GoRouterState state) {
             return tweenWarpper(context, state, CreateRacePage());
           },
-        ),
+        )
       ],
-    )
+    ),
+    GoRoute(
+      path: '/login',
+      pageBuilder: (BuildContext context, GoRouterState state) {
+        return tweenWarpper(context, state, LoginPage());
+      },
+    ),
   ]);
 
   static CustomTransitionPage<void> tweenWarpper(
