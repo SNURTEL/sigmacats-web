@@ -31,11 +31,9 @@ class _NumericStepButtonState extends State<NumericStepButton> {
           IconButton(
             icon: Icon(
               Icons.remove,
-              color: Theme.of(context).primaryColor,
             ),
             padding: EdgeInsets.symmetric(vertical: 4.0, horizontal: 18.0),
             iconSize: 32.0,
-            color: Theme.of(context).primaryColor,
             onPressed: () {
               setState(() {
                 if (counter > widget.minValue) {
@@ -48,20 +46,13 @@ class _NumericStepButtonState extends State<NumericStepButton> {
           Text(
             '$counter',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colors.black87,
-              fontSize: 18.0,
-              fontWeight: FontWeight.w500,
-            ),
           ),
           IconButton(
             icon: Icon(
               Icons.add,
-              color: Theme.of(context).primaryColor,
             ),
             padding: EdgeInsets.symmetric(vertical: 4.0, horizontal: 18.0),
             iconSize: 32.0,
-            color: Theme.of(context).primaryColor,
             onPressed: () {
               setState(() {
                 if (counter < widget.maxValue) {
