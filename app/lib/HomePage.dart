@@ -1,5 +1,8 @@
 import 'dart:convert';
 import 'dart:math';
+import 'package:app/network.dart';
+import 'package:dio/browser.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:sizer/sizer.dart';
@@ -7,7 +10,6 @@ import 'package:sizer/sizer.dart';
 import 'settings.dart' as settings;
 
 import 'models/Race.dart';
-
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -19,6 +21,8 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   late Future<List<RaceListEntry>> futureRaces;
 
+  late Dio dio = getDio(context);
+
   @override
   void initState() {
     super.initState();
@@ -26,21 +30,14 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<List<RaceListEntry>> fetchRaceList() async {
-
-    final response =
-    // WHY DOES THIS EVEN WORK???????? HELP ???????? 127.0.0.11 IS DOCKER'S DNS, NOT BACKEND!!!!!!!
-    await http.get(Uri.parse('${settings.apiBaseUrl}/api/coordinator/race/'),
-
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-        });
-
-    if (response.statusCode == 200) {
-      // If the server returns a 200 OK response, parse the races from the response
-      final List<dynamic> races = json.decode(utf8.decode(response.bodyBytes));
+    try {
+      final response =
+          // WHY DOES THIS EVEN WORK???????? HELP ???????? 127.0.0.11 IS DOCKER'S DNS, NOT BACKEND!!!!!!!
+          await dio.get('${settings.apiBaseUrl}/api/coordinator/race/');
+      final List<dynamic> races = response.data;
       return races.map((race) => RaceListEntry.fromMap(race)).toList();
-    } else {
-      // If the server did not return a 200 OK response, throw an exception.
+    } on DioException catch (e) {
+      print(e);
       throw Exception('Failed to load races');
     }
   }
@@ -56,73 +53,72 @@ class _HomePageState extends State<HomePage> {
             // padding: EdgeInsets.symmetric(vertical: 5.h, horizontal: 3.h),
             child: Scrollbar(
                 child: SizedBox(
-                  width: max(min(40.h, 300), 600),
-                  child: ListView.builder(
-                    itemCount: snapshot.data!.length,
-                    itemBuilder: (context, index) {
-                      return
-                        Column(
+              width: max(min(40.h, 300), 600),
+              child: ListView.builder(
+                itemCount: snapshot.data!.length,
+                itemBuilder: (context, index) {
+                  return Column(
+                    children: [
+                      Visibility(
+                          visible: index == 0,
+                          child: SizedBox(
+                            height: 96,
+                          )),
+                      Card(
+                        margin: const EdgeInsets.all(5.0),
+                        child: Column(
                           children: [
-                            Visibility(visible: index == 0, child: SizedBox(height: 96,)),
-                            Card(
-                              margin: const EdgeInsets.all(5.0),
-                              child: Column(
+                            Container(
+                              height: 160.0,
+                              // Fixed height
+                              width: double.infinity,
+                              // Fill the available width
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(16.0),
+                                  topRight: Radius.circular(16.0),
+                                ),
+                                child: Image.asset(
+                                  'res/sample_image.png',
+                                  fit: BoxFit.fitWidth, // Ensure the image fills the container
+                                ),
+                              ),
+                            ),
+                            ListTile(
+                              contentPadding: const EdgeInsets.all(10.0),
+                              title: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Container(
-                                    height: 160.0,
-                                    // Fixed height
-                                    width: double.infinity,
-                                    // Fill the available width
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.only(
-                                        topLeft: Radius.circular(16.0),
-                                        topRight: Radius.circular(16.0),
-                                      ),
-                                      child: Image.asset(
-                                        'res/sample_image.png',
-                                        fit: BoxFit
-                                            .fitWidth, // Ensure the image fills the container
-                                      ),
+                                  Text(
+                                    // FIXME order by most recent in backend
+                                    snapshot.data![index].name,
+                                    style: TextStyle(
+                                      fontSize: 20.0,
+                                      // Adjust the font size as needed
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  ListTile(
-                                    contentPadding: const EdgeInsets.all(10.0),
-                                    title: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          // FIXME order by most recent in backend
-                                          snapshot.data![index].name,
-                                          style: TextStyle(
-                                            fontSize: 20.0,
-                                            // Adjust the font size as needed
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        SizedBox(height: 5.0),
-                                        Text(
-                                          // FIXME order by most recent in backend
-                                          snapshot.data![index].start_timestamp
-                                              .toString(),
-                                          style: TextStyle(
-                                            fontSize: 16.0,
-                                          ),
-                                        ),
-                                      ],
+                                  SizedBox(height: 5.0),
+                                  Text(
+                                    // FIXME order by most recent in backend
+                                    snapshot.data![index].start_timestamp.toString(),
+                                    style: TextStyle(
+                                      fontSize: 16.0,
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-                            SizedBox(height: 8.0),
-                            // Add space between list elements
                           ],
-                        );
-                    },
-                  ),
-
-                )
-            ),
+                        ),
+                      ),
+                      SizedBox(height: 8.0),
+                      // Add space between list elements
+                    ],
+                  );
+                },
+              ),
+            )),
           );
         } else if (snapshot.hasError) {
           print(snapshot.error);

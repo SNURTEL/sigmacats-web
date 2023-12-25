@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
-import 'package:date_field/date_field.dart';
+import 'package:app/notification.dart';
 import 'package:dio/dio.dart';
 import 'package:file_picker/_internal/file_picker_web.dart';
 import 'package:file_picker/file_picker.dart';
@@ -15,6 +15,7 @@ import 'package:flutter_map_cancellable_tile_provider/flutter_map_cancellable_ti
 import 'package:gpx/gpx.dart';
 
 import 'components/NumberPicker.dart';
+import 'network.dart';
 import 'settings.dart' as settings;
 
 import 'models/Race.dart';
@@ -74,7 +75,7 @@ class _CreateRacePageState extends State<CreateRacePage> {
   var isAddEntryFeeChecked = false;
   var isAddMeetupHourChecked = false;
 
-  final dio = Dio();
+  late Dio dio = getDio(context);
 
   var isLoading = false;
   var successfullyCreated = false;
@@ -175,7 +176,7 @@ class _CreateRacePageState extends State<CreateRacePage> {
                                 });
                                 try {
                                   var response =
-                                      await dio.post("http://127.0.0.11:5050/api/coordinator/race/create/upload-graphic/", data: formData);
+                                      await dio.post("http://localhost:5050/api/coordinator/race/create/upload-graphic/", data: formData);
                                   print(response.data);
                                   var uploadedFileMeta = response.data;
                                   setState(() {
@@ -418,7 +419,7 @@ class _CreateRacePageState extends State<CreateRacePage> {
                                           "name": picked.files.first.name
                                         });
                                         try {
-                                          var response = await dio.post("http://127.0.0.11:5050/api/coordinator/race/create/upload-route/",
+                                          var response = await dio.post("http://localhost:5050/api/coordinator/race/create/upload-route/",
                                               data: formData);
                                           final Map<String, dynamic> uploadedFileMeta = response.data;
                                           print(response.data);
@@ -917,7 +918,7 @@ class _CreateRacePageState extends State<CreateRacePage> {
                         });
                         try {
                           var response =
-                              await dio.post("http://127.0.0.11:5050/api/coordinator/race/create/upload-graphic/", data: formData);
+                              await dio.post("http://localhost:5050/api/coordinator/race/create/upload-graphic/", data: formData);
                           print(response.data);
                           var uploadedFileMeta = response.data;
                           var path = uploadedFileMeta['fileobj.path'];
@@ -1069,13 +1070,4 @@ extension StringExtensions on String {
   String capitalize() {
     return "${this[0].toUpperCase()}${substring(1)}";
   }
-}
-
-void showNotification(BuildContext context, String message) {
-  final snackBar = SnackBar(
-    content: Text(message),
-    duration: const Duration(seconds: 3),
-  );
-
-  ScaffoldMessenger.of(context).showSnackBar(snackBar);
 }

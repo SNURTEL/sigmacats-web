@@ -29,7 +29,6 @@ RUN flutter doctor -v
 RUN mkdir $APP
 # copy source code to folder
 COPY app $APP
-COPY nginx.conf $APP/nginx.conf
 # stup new folder as the working directory
 WORKDIR $APP
 # Run build: 1 - clean, 2 - pub get, 3 - build web
@@ -38,6 +37,7 @@ RUN flutter pub get
 COPY /app/.env.sample $APP/.env
 RUN flutter build web
 
+COPY nginx.conf $APP/nginx.conf
 
 
 # use nginx to deploy

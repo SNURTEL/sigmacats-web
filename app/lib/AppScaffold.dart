@@ -19,7 +19,7 @@ class _AppScaffoldState extends State<AppScaffold> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Witaj, Coordinator1!'),
+        title: Text('Witaj, Coordinator2!'),
       ),
       body: Row(
         children: [
