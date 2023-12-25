@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:app/network.dart';
@@ -8,31 +9,37 @@ import 'package:sizer/sizer.dart';
 import 'package:dio/dio.dart';
 import 'settings.dart' as settings;
 
+
 import 'notification.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({Key? key}) : super(key: key);
+class ResetPasswordPage extends StatefulWidget {
+  final String token;
+
+
+  const ResetPasswordPage(this.token, {Key? key}) : super(key: key);
 
   @override
-  _LoginPageState createState() => _LoginPageState();
+  _ResetPasswordPageState createState() => _ResetPasswordPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _ResetPasswordPageState extends State<ResetPasswordPage> {
+
   final _formKey = GlobalKey<FormState>();
-  final _usernameEditingController = TextEditingController();
-  final _passwordEditingController = TextEditingController();
+  final _password1EditingController = TextEditingController();
+  final _password2EditingController = TextEditingController();
 
   var _showPassword = false;
   var _isLoading = false;
 
   late Dio dio = getDio(context);
 
-  _LoginPageState() : super();
+  _ResetPasswordPageState() : super();
 
   @override
   void initState() {
     super.initState();
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -44,42 +51,32 @@ class _LoginPageState extends State<LoginPage> {
                   key: _formKey,
                   child: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.center, children: [
                     Text(
-                      "Logowanie",
+                      "Resetowanie hasła",
                       style: Theme.of(context).textTheme.displayMedium,
                     ),
                     SizedBox(
-                      height: 64,
+                      height: 32,
                     ),
-                    Flexible(
-                      child: TextFormField(
-                        validator: (v) {
-                          if (v == null || v.isEmpty) {
-                            return "Adres email nie może być pusty.";
-                          }
-                          if (!RegExp(
-                                  r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$')
-                              .hasMatch(v)) {
-                            return "Niepoprawny adres email.";
-                          }
-                          return null;
-                        },
-                        controller: _usernameEditingController,
-                        decoration: InputDecoration(border: OutlineInputBorder(), labelText: "Adres email", icon: Icon(Icons.person)),
-                      ),
+                    Text(
+                      "Ustaw nowe hasło do konta.",
+                      style: Theme.of(context).textTheme.bodyMedium,
                     ),
                     SizedBox(
-                      height: 16,
+                      height: 32,
                     ),
                     Flexible(
                       child: TextFormField(
                         obscureText: !_showPassword,
-                        controller: _passwordEditingController,
+                        controller: _password1EditingController,
                         validator: (v) {
                           if (v == null || v.isEmpty) {
                             return "Hasło nie może być puste.";
                           }
                           if (v.length < 8) {
                             return "Hasło musi zawierać co najmniej 8 znaków.";
+                          }
+                          if (v != _password2EditingController.text) {
+                            return "Hasła nie są identyczne";
                           }
                           return null;
                         },
@@ -103,6 +100,32 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                     SizedBox(
+                      height: 8,
+                    ),
+                    Flexible(
+                      child: TextFormField(
+                        obscureText: !_showPassword,
+                        controller: _password2EditingController,
+                        validator: (v) {
+                          if (v == null || v.isEmpty) {
+                            return "Hasło nie może być puste.";
+                          }
+                          if (v.length < 8) {
+                            return "Hasło musi zawierać co najmniej 8 znaków.";
+                          }
+                          if (v != _password1EditingController.text) {
+                            return "Hasła nie są identyczne";
+                          }
+                          return null;
+                        },
+                        decoration: InputDecoration(
+                            border: OutlineInputBorder(),
+                            labelText: "Potwierdź hasło",
+                            icon: SizedBox(width: 24,),
+                            ),
+                      ),
+                    ),
+                    SizedBox(
                       height: 24,
                     ),
                     SizedBox(
@@ -123,63 +146,28 @@ class _LoginPageState extends State<LoginPage> {
                                     return;
                                   }
 
-                                  var requestData = FormData.fromMap({
-                                    "username": _usernameEditingController.text,
-                                    "password": _passwordEditingController.text,
-                                  });
+                                  var requestData = {
+                                    "token": widget.token,
+                                    "password": _password1EditingController.text,
+                                  };
 
                                   try {
-                                    await dio.post('${settings.apiBaseUrl}/api/auth/cookie/login', data: requestData);
-                                    var response = await dio.get('${settings.apiBaseUrl}/api/users/me');
-
-                                    if (response.data["type"] != "coordinator") {
-                                      setState(() {
-                                        _isLoading = false;
-                                      });
-                                      showNotification(context, 'Niepoprawne konto.');
-                                      await dio.post('${settings.apiBaseUrl}/api/auth/cookie/logout');
-                                      return;
-                                    }
-
-                                    context.go('/');
+                                    await dio.post('${settings.apiBaseUrl}/api/auth/reset-password', data: jsonEncode(requestData));
+                                    showNotification(context, 'Zresetowano hasło!');
+                                    await Future.delayed(Duration(seconds: 4));
+                                    context.go('/login');
                                   } on DioException catch (e) {
-                                    print(e.response?.statusCode);
-                                    print(e.response?.data);
-                                    print(e.error);
-                                    print(e.message);
                                     setState(() {
                                       _isLoading = false;
                                     });
-                                    if (e.response?.statusCode == 400 && e.response?.data["detail"] == "LOGIN_BAD_CREDENTIALS") {
-                                      showNotification(context, 'Niepoprawny adres email bądź hasło.');
-                                    } else {
-                                      showNotification(context, 'Błąd logowania.');
-                                    }
+                                    showNotification(context, 'Błąd resetowania hasła.');
                                   }
                                 },
                           child: Padding(
                             padding: const EdgeInsets.all(8.0),
-                            child: Text("Zaloguj się"),
+                            child: Text("Ustaw nowe hasło"),
                           ),
-                        )),
-                    SizedBox(
-                      height: 8,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        SizedBox(
-                          width: 32,
-                        ),
-                        TextButton(
-                            onPressed: _isLoading
-                                ? null
-                                : () {
-                                    context.go('/forgot-password');
-                                  },
-                            child: Text("Nie pamiętam hasła")),
-                      ],
-                    )
+                        ))
                   ]),
                 ))));
   }
