@@ -57,6 +57,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                     Text(
                       "Wprowadź adres email powiązany z kontem - wyślemy do Ciebie wiadomość z linkiem do zresetowania hasła.",
                       style: Theme.of(context).textTheme.bodyMedium,
+                      textAlign: TextAlign.center,
                     ),
                     SizedBox(
                       height: 32,
