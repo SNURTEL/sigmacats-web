@@ -16,7 +16,8 @@ import 'package:app/LoginPage.dart';
 
 void main() async {
   await dotenv.load(fileName: "../.env");
-  settings.apiBaseUrl = dotenv.env["FLUTTER_FASTAPI_HOST_URL"] ?? "http://localhost:8000";
+  settings.apiBaseUrl = dotenv.env["FLUTTER_FASTAPI_HOST"] ?? "http://localhost:8000";
+  settings.uploadBaseUrl = '${dotenv.env["FLUTTER_FASTAPI_HOST"] ?? "http://localhost"}:${dotenv.env["FLUTTER_FASTAPI_UPLOAD_PORT"] ?? 5050}' ;
 
   usePathUrlStrategy();
   initializeDateFormatting('pl_PL', null);
