@@ -176,7 +176,7 @@ class _CreateRacePageState extends State<CreateRacePage> {
                                 });
                                 try {
                                   var response =
-                                      await dio.post("http://localhost:5050/api/coordinator/race/create/upload-graphic/", data: formData);
+                                      await dio.post("${settings.uploadBaseUrl}/api/coordinator/race/create/upload-graphic/", data: formData);
                                   print(response.data);
                                   var uploadedFileMeta = response.data;
                                   setState(() {
@@ -419,7 +419,8 @@ class _CreateRacePageState extends State<CreateRacePage> {
                                           "name": picked.files.first.name
                                         });
                                         try {
-                                          var response = await dio.post("http://localhost:5050/api/coordinator/race/create/upload-route/",
+                                          print("${settings.uploadBaseUrl}/api/coordinator/race/create/upload-route/");
+                                          var response = await dio.post("${settings.uploadBaseUrl}/api/coordinator/race/create/upload-route/",
                                               data: formData);
                                           final Map<String, dynamic> uploadedFileMeta = response.data;
                                           print(response.data);
@@ -918,7 +919,7 @@ class _CreateRacePageState extends State<CreateRacePage> {
                         });
                         try {
                           var response =
-                              await dio.post("http://localhost:5050/api/coordinator/race/create/upload-graphic/", data: formData);
+                              await dio.post("${settings.uploadBaseUrl}/api/coordinator/race/create/upload-graphic/", data: formData);
                           print(response.data);
                           var uploadedFileMeta = response.data;
                           var path = uploadedFileMeta['fileobj.path'];
