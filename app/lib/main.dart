@@ -95,6 +95,7 @@ class _AppState extends State<App> {
   Widget build(BuildContext context) {
     return Sizer(builder: (context, orientation, deviceType) {
         return MaterialApp.router(
+          title: "Sigma",
           theme: ThemeData(useMaterial3: true, colorScheme: lightColorScheme),
           darkTheme: ThemeData(useMaterial3: true, colorScheme: darkColorScheme),
           routerConfig: _router,
