@@ -1,6 +1,12 @@
 import 'package:app/HomePage.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+
+import 'network.dart';
+import 'notification.dart';
+import 'settings.dart' as settings;
+
 
 class AppScaffold extends StatefulWidget {
   const AppScaffold({super.key, required this.child});
@@ -12,14 +18,16 @@ class AppScaffold extends StatefulWidget {
 }
 
 class _AppScaffoldState extends State<AppScaffold> {
-  int selection=0;
+  int selection = 0;
+
+  late Dio dio = getDio(context);
 
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Witaj, Coordinator2!'),
+        title: Text("Cześć!"),
       ),
       body: Row(
         children: [
@@ -37,6 +45,44 @@ class _AppScaffoldState extends State<AppScaffold> {
               };
               context.go(route);
             },
+            trailing: Expanded(
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    InkWell(
+                      onTap: () {
+                        try {
+                          dio.post("${settings.apiBaseUrl}/api/auth/cookie/logout");
+                          showNotification(context, "Wylogowano.");
+                          context.go('/login');
+                        } on DioException catch (e) {
+                          print(e.response?.statusCode);
+                          print(e.response?.data);
+                          showNotification(context, "Błąd wylogowywania.");
+                          return;
+                        }
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          children: [
+                            Icon(Icons.logout),
+                            Text(
+                              "Wyloguj",
+                              style: Theme.of(context).textTheme.labelMedium,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                  ],
+                ),
+              ),
+            ),
             labelType: NavigationRailLabelType.all,
             destinations: [
               NavigationRailDestination(
