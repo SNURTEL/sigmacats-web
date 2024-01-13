@@ -18,7 +18,7 @@ import 'components/NumberPicker.dart';
 import 'network.dart';
 import 'settings.dart' as settings;
 
-import 'models/Race.dart';
+import 'models/RaceListRead.dart';
 
 class CreateRacePage extends StatefulWidget {
   const CreateRacePage({Key? key}) : super(key: key);

@@ -10,7 +10,7 @@ enum RaceStatus {
 
 }
 
-class RaceListEntry {
+class RaceListRead {
   final int id;
   final RaceStatus status;
   final String name;
@@ -21,9 +21,10 @@ class RaceListEntry {
   final DateTime end_timestamp;
   final String event_graphic_file;
   final int season_id;
+  final bool is_approved;
 
 //<editor-fold desc="Data Methods">
-  const RaceListEntry({
+  const RaceListRead({
     required this.id,
     required this.status,
     required this.name,
@@ -34,12 +35,13 @@ class RaceListEntry {
     required this.end_timestamp,
     required this.event_graphic_file,
     required this.season_id,
+    required this.is_approved,
   });
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is RaceListEntry &&
+      (other is RaceListRead &&
           runtimeType == other.runtimeType &&
           id == other.id &&
           status == other.status &&
@@ -50,7 +52,8 @@ class RaceListEntry {
           start_timestamp == other.start_timestamp &&
           end_timestamp == other.end_timestamp &&
           event_graphic_file == other.event_graphic_file &&
-          season_id == other.season_id);
+          season_id == other.season_id &&
+          is_approved == other.is_approved);
 
   @override
   int get hashCode =>
@@ -63,7 +66,8 @@ class RaceListEntry {
       start_timestamp.hashCode ^
       end_timestamp.hashCode ^
       event_graphic_file.hashCode ^
-      season_id.hashCode;
+      season_id.hashCode ^
+      is_approved.hashCode;
 
   @override
   String toString() {
@@ -78,10 +82,11 @@ class RaceListEntry {
         ' end_timestamp: $end_timestamp,' +
         ' event_graphic_file: $event_graphic_file,' +
         ' season_id: $season_id,' +
+        ' is_approved: $is_approved,' +
         '}';
   }
 
-  RaceListEntry copyWith({
+  RaceListRead copyWith({
     int? id,
     RaceStatus? status,
     String? name,
@@ -92,8 +97,9 @@ class RaceListEntry {
     DateTime? end_timestamp,
     String? event_graphic_file,
     int? season_id,
+    bool? is_approved
   }) {
-    return RaceListEntry(
+    return RaceListRead(
       id: id ?? this.id,
       status: status ?? this.status,
       name: name ?? this.name,
@@ -104,6 +110,7 @@ class RaceListEntry {
       end_timestamp: end_timestamp ?? this.end_timestamp,
       event_graphic_file: event_graphic_file ?? this.event_graphic_file,
       season_id: season_id ?? this.season_id,
+      is_approved: is_approved ?? this.is_approved
     );
   }
 
@@ -119,11 +126,12 @@ class RaceListEntry {
       'end_timestamp': this.end_timestamp,
       'event_graphic_file': this.event_graphic_file,
       'season_id': this.season_id,
+      'is_approved': this.is_approved,
     };
   }
 
-  factory RaceListEntry.fromMap(Map<String, dynamic> map) {
-    return RaceListEntry(
+  factory RaceListRead.fromMap(Map<String, dynamic> map) {
+    return RaceListRead(
       id: map['id'] as int,
       status: RaceStatus.values.byName(map['status']),
       name: map['name'] as String,
@@ -134,8 +142,11 @@ class RaceListEntry {
       end_timestamp: DateTime.parse(map['end_timestamp']),
       event_graphic_file: map['event_graphic_file'] as String,
       season_id: map['season_id'] as int,
+      is_approved: map['is_approved'] as bool,
     );
   }
 
 //</editor-fold>
 }
+
+
