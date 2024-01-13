@@ -8,6 +8,7 @@ import 'package:dio/browser.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:http/browser_client.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -15,7 +16,7 @@ import 'package:sizer/sizer.dart';
 
 import 'settings.dart' as settings;
 
-import 'models/Race.dart';
+import 'models/RaceListRead.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -37,9 +38,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<List<RaceListRead>> fetchRaceList() async {
     try {
-      final response =
-          // WHY DOES THIS EVEN WORK???????? HELP ???????? 127.0.0.11 IS DOCKER'S DNS, NOT BACKEND!!!!!!!
-          await dio.get('${settings.apiBaseUrl}/api/coordinator/race/');
+      final response = await dio.get('${settings.apiBaseUrl}/api/coordinator/race/');
       final List<dynamic> races = response.data;
       return races.map((race) => RaceListRead.fromMap(race)).toList();
     } on DioException catch (e) {
@@ -56,7 +55,6 @@ class _HomePageState extends State<HomePage> {
         late Widget content;
         if (snapshot.hasData) {
           content = Center(
-            // padding: EdgeInsets.symmetric(vertical: 5.h, horizontal: 3.h),
             child: ListView.builder(
               itemCount: snapshot.data!.length,
               itemBuilder: (context, index) {
@@ -126,9 +124,9 @@ class RaceCard extends StatelessWidget {
       child: ClipRect(
         child: ColorFiltered(
           colorFilter: ColorFilter.mode(
-              Theme.of(context).colorScheme.surface.withOpacity(0.62),
-              BlendMode.srcOver,
-            ),
+            Theme.of(context).colorScheme.surface.withOpacity(0.62),
+            BlendMode.srcOver,
+          ),
           child: CardContent(context),
         ),
       ),
@@ -150,14 +148,16 @@ class RaceCard extends StatelessWidget {
                 bottomRight: Radius.circular(16.0),
               ),
             ),
-            child: Padding(padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 24), child: Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text("Właśnie trwa!"),
-                ),
-              ],
-            )),
+            child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 24),
+                child: Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text("Właśnie trwa!"),
+                    ),
+                  ],
+                )),
           ),
         ],
       ),
@@ -181,7 +181,9 @@ class RaceCard extends StatelessWidget {
             ),
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 24),
-              child: Row(children: [Text("Zatwierdź wyniki"), Spacer(), IconButton(onPressed: () {}, icon: Icon(Icons.arrow_forward))]),
+              child: Row(children: [Text("Zatwierdź wyniki"), Spacer(), IconButton(onPressed: () {
+                context.go("/race/${race.id}");
+              }, icon: Icon(Icons.arrow_forward))]),
             ),
           )
         ],
