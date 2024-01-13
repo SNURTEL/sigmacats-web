@@ -56,6 +56,7 @@ class _HomePageState extends State<HomePage> {
         if (snapshot.hasData) {
           content = Center(
             child: ListView.builder(
+              shrinkWrap: true,
               itemCount: snapshot.data!.length,
               itemBuilder: (context, index) {
                 return Column(
@@ -222,9 +223,13 @@ class RaceCard extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      race.name,
-                      style: Theme.of(context).textTheme.titleLarge,
+                    ConstrainedBox(
+                      constraints: BoxConstraints(maxWidth: max(min(40.h, 300), 600) - 144),
+                      child: Text(
+                        race.name,
+                        softWrap: true,
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
                     ),
                     SizedBox(height: 5.0),
                     Text(

@@ -81,8 +81,14 @@ class _RaceResultsPageState extends State<RaceResultsPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text("\"${race.name}\" nie wymaga zatwierdzenia wyników."),
-                    SizedBox(height: 8,),
-                    OutlinedButton(onPressed: (){context.go("/");}, child: Text("Wróć na stronę główną"))
+                    SizedBox(
+                      height: 8,
+                    ),
+                    OutlinedButton(
+                        onPressed: () {
+                          context.go("/");
+                        },
+                        child: Text("Wróć na stronę główną"))
                   ],
                 ),
               ),
@@ -119,11 +125,14 @@ class _RaceResultsPageState extends State<RaceResultsPage> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                race.name + " - wyniki",
-                                style: Theme.of(context).textTheme.displayMedium,
-                                maxLines: 6,
-                                overflow: TextOverflow.ellipsis,
+                              ConstrainedBox(
+                                constraints: BoxConstraints(maxWidth: max(min(40.h, 300), 600) - 32),
+                                child: Text(
+                                  race.name + " - wyniki",
+                                  style: Theme.of(context).textTheme.displayMedium,
+                                  maxLines: 6,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               )
                             ],
                           ),
@@ -346,16 +355,12 @@ class _RaceResultsPageState extends State<RaceResultsPage> {
                                     setState(() {
                                       confirmButtonEnabled = false;
                                     });
-                                    await dio.patch(
-                                        '${settings.apiBaseUrl}/api/coordinator/race/${widget.id}',
-                                        data: {
-                                          "temperature": pickedTemperature.value,
-                                          "rain": pickedRain.value,
-                                          "wind": pickedWind.value
-                                        });
-                                    await dio.patch(
-                                        '${settings.apiBaseUrl}/api/coordinator/race/${widget.id}/participations',
-                                        data: participations.map((p) => {"id": p.id, "place_assigned_overall": p.place_assigned_overall}).toList());
+                                    await dio.patch('${settings.apiBaseUrl}/api/coordinator/race/${widget.id}',
+                                        data: {"temperature": pickedTemperature.value, "rain": pickedRain.value, "wind": pickedWind.value});
+                                    await dio.patch('${settings.apiBaseUrl}/api/coordinator/race/${widget.id}/participations',
+                                        data: participations
+                                            .map((p) => {"id": p.id, "place_assigned_overall": p.place_assigned_overall})
+                                            .toList());
                                     showNotification(context, "Sukces!");
                                     await Future.delayed(Duration(seconds: 4));
                                     context.go("/");
