@@ -233,14 +233,14 @@ class RaceCard extends StatelessWidget {
                     ),
                     SizedBox(height: 5.0),
                     Text(
-                      '${DateFormat('dd.MM.yyyy HH:mm').format(DateTime.parse(race.start_timestamp.toString()))}-${DateFormat('HH:mm').format(DateTime.parse(race.end_timestamp.toString()))}',
+                      '${DateFormat('dd.MM.yyyy HH:mm').format(race.start_timestamp)}-${DateFormat('HH:mm').format(race.end_timestamp)}',
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                     Visibility(
                       visible: race.meetup_timestamp != null,
                       child: Text(
                         race.meetup_timestamp != null
-                            ? 'Zbiórka ${DateFormat('HH:mm').format(DateTime.parse(race.meetup_timestamp.toString()))}'
+                            ? 'Zbiórka ${DateFormat('HH:mm').format(race.meetup_timestamp!)}'
                             : '',
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),

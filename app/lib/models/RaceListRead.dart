@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 enum RaceStatus {
   pending("pending"),
   in_progress("in_progress"),
@@ -137,9 +139,9 @@ class RaceListRead {
       name: map['name'] as String,
       description: map['description'] as String,
       no_laps: map['no_laps'] as int,
-      meetup_timestamp: map['meetup_timestamp'] != null ? DateTime.parse(map['meetup_timestamp']) : null,
-      start_timestamp: DateTime.parse(map['start_timestamp']),
-      end_timestamp: DateTime.parse(map['end_timestamp']),
+      meetup_timestamp: map['meetup_timestamp'] != null ? DateFormat("yyyy-MM-ddTHH:mm:ss").parse(map['meetup_timestamp'], true).toLocal() : null,
+      start_timestamp: DateFormat("yyyy-MM-ddTHH:mm:ss").parse(map['start_timestamp'], true).toLocal(),
+      end_timestamp: DateFormat("yyyy-MM-ddTHH:mm:ss").parse(map['end_timestamp'], true).toLocal(),
       event_graphic_file: map['event_graphic_file'] as String,
       season_id: map['season_id'] as int,
       is_approved: map['is_approved'] as bool,
