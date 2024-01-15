@@ -293,9 +293,8 @@ class _RaceResultsPageState extends State<RaceResultsPage> {
                     SizedBox(
                       height: 32,
                     ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
+                    StatefulBuilder(builder: (BuildContext context, void Function(void Function()) setState) {
+                      final dropdowns = [
                         DropdownMenu<RaceTemperature>(
                           enableFilter: false,
                           enableSearch: false,
@@ -341,8 +340,24 @@ class _RaceResultsPageState extends State<RaceResultsPage> {
                             return DropdownMenuEntry<RaceRain>(value: value, label: rainNameMapping[value] ?? "");
                           }).toList(),
                         ),
-                      ],
-                    ),
+                      ];
+
+                      if (MediaQuery.of(context).size.width > 550) {
+                        return Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: dropdowns
+                        );
+                      } else {
+                        return SizedBox(
+                          height: 192,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.max,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: dropdowns,
+                          ),
+                        );
+                      }
+                    }),
                     SizedBox(
                       height: 64,
                     ),
