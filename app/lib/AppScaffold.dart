@@ -41,6 +41,7 @@ class _AppScaffoldState extends State<AppScaffold> {
               String route = switch (selection) {
                 0 => "/",
                 1 => "/create",
+                2 => "/seasons",
                 _ => "/"
               };
               context.go(route);
@@ -94,8 +95,8 @@ class _AppScaffoldState extends State<AppScaffold> {
                 label: Text('Nowy wyścig'),
               ),
               NavigationRailDestination(
-                icon: Icon(Icons.person),
-                label: Text('Profil'),
+                icon: Icon(Icons.calendar_month),
+                label: Text('Sezon'),
               ),
             ],
           ),
