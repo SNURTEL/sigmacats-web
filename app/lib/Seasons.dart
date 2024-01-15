@@ -203,6 +203,9 @@ class _SeasonsPageState extends State<SeasonsPage> {
                                   TextFormField(
                                     autovalidateMode: AutovalidateMode.onUserInteraction,
                                     validator: (value) {
+                                      if (seasons.map((e) => e.name).contains(value)) {
+                                        return "Sezon o takiej nazwie już istnieje";
+                                      }
                                       return (value?.isNotEmpty ?? true) ? null : "Pole wymagane";
                                     },
                                     controller: newSeasonNameTextFieldController,
