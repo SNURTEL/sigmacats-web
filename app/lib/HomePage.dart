@@ -148,13 +148,10 @@ class RaceCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.all(5.0),
       child: ClipRect(
-        child: ColorFiltered(
-          colorFilter: ColorFilter.mode(
-            Theme.of(context).colorScheme.surface.withOpacity(0.62),
-            BlendMode.srcOver,
-          ),
-          child: CardContent(context),
-        ),
+        child: Opacity(
+            opacity: 0.62,
+            child: CardContent(context),
+        )
       ),
     );
   }
