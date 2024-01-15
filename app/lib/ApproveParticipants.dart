@@ -140,7 +140,6 @@ class _ApproveParticipantsPageState extends State<ApproveParticipantsPage> {
                     shrinkWrap: true,
                     itemCount: participations.length,
                     itemBuilder: (context, index) {
-                      print(participations[index]);
 
                       late Widget buttons;
 

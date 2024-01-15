@@ -4,6 +4,7 @@ import 'package:app/CreateRacePage.dart';
 import 'package:app/ForgotPasswordPage.dart';
 import 'package:app/RaceResults.dart';
 import 'package:app/ResetPasswordPage.dart';
+import 'package:app/Seasons.dart';
 import 'package:app/theme/Color.dart';
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
@@ -64,6 +65,12 @@ class _AppState extends State<App> {
             path: '/race/:id/participants',
             pageBuilder: (BuildContext context, GoRouterState state) {
               return tweenWarpper(context, state, ApproveParticipantsPage(int.parse(state.pathParameters['id']!)));
+            },
+          ),
+          GoRoute(
+            path: '/seasons',
+            pageBuilder: (BuildContext context, GoRouterState state) {
+              return tweenWarpper(context, state, SeasonsPage());
             },
           )
         ],
