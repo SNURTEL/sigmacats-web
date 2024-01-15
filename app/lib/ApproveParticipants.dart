@@ -106,17 +106,18 @@ class _ApproveParticipantsPageState extends State<ApproveParticipantsPage> {
                     child: Row(
                       children: [
                         Column(
+                          mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            ConstrainedBox(
-                              constraints: BoxConstraints(maxWidth: max(min(40.h, 300), 600) - 32),
-                              child: Text(
-                                race.name + " - uczestnicy",
-                                style: Theme.of(context).textTheme.displayMedium,
-                                maxLines: 6,
-                                overflow: TextOverflow.ellipsis,
+                           Flexible(
+                                child: Text(
+                                  race.name + " - uczestnicy",
+                                  style: Theme.of(context).textTheme.displayMedium,
+                                  maxLines: 6,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
-                            )
+
                           ],
                         ),
                       ],

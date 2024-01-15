@@ -107,9 +107,11 @@ class _CreateRacePageState extends State<CreateRacePage> {
             Container(
                 child: Row(
               children: [
-                Text(
-                  "Stwórz nowy wyścig",
-                  style: Theme.of(context).textTheme.displayLarge,
+                Flexible(
+                  child: Text(
+                    "Stwórz nowy wyścig",
+                    style: Theme.of(context).textTheme.displayLarge,
+                  ),
                 ),
               ],
             )),
