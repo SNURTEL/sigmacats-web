@@ -260,7 +260,7 @@ class RaceParticipationRead {
   final int race_id;
   final int rider_id;
   final int bike_id;
-  final RaceParticipationStatus status;
+  RaceParticipationStatus status;
   final int? place_generated_overall;
   int? place_assigned_overall;
   final String rider_name;

@@ -1,4 +1,5 @@
 import 'package:app/AppScaffold.dart';
+import 'package:app/ApproveParticipants.dart';
 import 'package:app/CreateRacePage.dart';
 import 'package:app/ForgotPasswordPage.dart';
 import 'package:app/RaceResults.dart';
@@ -57,6 +58,12 @@ class _AppState extends State<App> {
             path: '/race/:id',
             pageBuilder: (BuildContext context, GoRouterState state) {
               return tweenWarpper(context, state, RaceResultsPage(int.parse(state.pathParameters['id']!)));
+            },
+          ),
+          GoRoute(
+            path: '/race/:id/participants',
+            pageBuilder: (BuildContext context, GoRouterState state) {
+              return tweenWarpper(context, state, ApproveParticipantsPage(int.parse(state.pathParameters['id']!)));
             },
           )
         ],

@@ -115,7 +115,32 @@ class RaceCard extends StatelessWidget {
   Widget PendingCard(BuildContext context) {
     return Card(
       margin: const EdgeInsets.all(5.0),
-      child: CardContent(context),
+      shadowColor: Colors.transparent,
+      child: Column(
+        children: [
+          CardContent(context),
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(16.0),
+                bottomRight: Radius.circular(16.0),
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 24),
+              child: Row(children: [
+                Text("Zatwierdź uczestników"),
+                Spacer(),
+                IconButton(
+                    onPressed: () {
+                      context.go("/race/${race.id}/participants");
+                    },
+                    icon: Icon(Icons.arrow_forward))
+              ]),
+            ),
+          )
+        ],
+      ),
     );
   }
 
@@ -137,7 +162,8 @@ class RaceCard extends StatelessWidget {
   Widget InProgressCard(BuildContext context) {
     return Card(
       margin: const EdgeInsets.all(5.0),
-      color: Colors.greenAccent.withOpacity(0.1),
+      color: Colors.greenAccent.withOpacity(0.2),
+      shadowColor: Colors.transparent,
       child: Column(
         children: [
           CardContent(context),
@@ -168,7 +194,8 @@ class RaceCard extends StatelessWidget {
   Widget FinishedCard(BuildContext context) {
     return Card(
       margin: const EdgeInsets.all(5.0),
-      color: Colors.orangeAccent.withOpacity(0.1),
+      color: Colors.orangeAccent.withOpacity(0.2),
+      shadowColor: Colors.transparent,
       child: Column(
         children: [
           CardContent(context),
@@ -182,9 +209,15 @@ class RaceCard extends StatelessWidget {
             ),
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 24),
-              child: Row(children: [Text("Zatwierdź wyniki"), Spacer(), IconButton(onPressed: () {
-                context.go("/race/${race.id}");
-              }, icon: Icon(Icons.arrow_forward))]),
+              child: Row(children: [
+                Text("Zatwierdź wyniki"),
+                Spacer(),
+                IconButton(
+                    onPressed: () {
+                      context.go("/race/${race.id}");
+                    },
+                    icon: Icon(Icons.arrow_forward))
+              ]),
             ),
           )
         ],
@@ -239,9 +272,7 @@ class RaceCard extends StatelessWidget {
                     Visibility(
                       visible: race.meetup_timestamp != null,
                       child: Text(
-                        race.meetup_timestamp != null
-                            ? 'Zbiórka ${DateFormat('HH:mm').format(race.meetup_timestamp!)}'
-                            : '',
+                        race.meetup_timestamp != null ? 'Zbiórka ${DateFormat('HH:mm').format(race.meetup_timestamp!)}' : '',
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                     ),
