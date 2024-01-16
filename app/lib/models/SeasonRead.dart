@@ -1,7 +1,14 @@
 
 import 'package:intl/intl.dart';
 
+"""
+This file defines a model for reading a season
+"""
+
 class SeasonRead {
+  """
+  Defines a class for reading a season
+  """
   final int id;
   final String name;
   final DateTime startTimestamp;
@@ -16,7 +23,7 @@ class SeasonRead {
   });
 
   @override
-  bool operator ==(Object other) =>
+  bool operator ==(Object other) => // overrides == operator
       identical(this, other) ||
       (other is SeasonRead &&
           runtimeType == other.runtimeType &&
@@ -30,6 +37,9 @@ class SeasonRead {
 
   @override
   String toString() {
+    """
+    Converts season information into string
+    """
     return 'SeasonRead{' + ' id: $id,' + ' name: $name,' + ' startTimestamp: $startTimestamp,' + ' endTimestamp: $endTimestamp,' + '}';
   }
 
@@ -39,6 +49,9 @@ class SeasonRead {
     DateTime? startTimestamp,
     DateTime? endTimestamp,
   }) {
+    """
+    Copies season information
+    """
     return SeasonRead(
       id: id ?? this.id,
       name: name ?? this.name,
@@ -48,6 +61,9 @@ class SeasonRead {
   }
 
   Map<String, dynamic> toMap() {
+    """
+    Converts season to map form
+    """
     return {
       'id': this.id,
       'name': this.name,
@@ -57,6 +73,9 @@ class SeasonRead {
   }
 
   factory SeasonRead.fromMap(Map<String, dynamic> map) {
+    """
+    Reads season information from map
+    """
     return SeasonRead(
       id: map['id'] as int,
       name: map['name'] as String,
