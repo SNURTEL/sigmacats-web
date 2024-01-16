@@ -18,6 +18,9 @@ import 'package:app/HomePage.dart';
 import 'package:app/LoginPage.dart';
 
 void main() async {
+  """
+  Runs the application
+  """
   await dotenv.load(fileName: "../.env");
   settings.apiBaseUrl = dotenv.env["FLUTTER_FASTAPI_HOST"] ?? "http://localhost:8000";
   settings.uploadBaseUrl = '${dotenv.env["FLUTTER_FASTAPI_HOST"] ?? "http://localhost"}:${dotenv.env["FLUTTER_FASTAPI_UPLOAD_PORT"] ?? 5050}' ;
@@ -28,14 +31,18 @@ void main() async {
 }
 
 class App extends StatefulWidget {
-
+  """
+  App class used to build the application, includes states
+  """
   @override
   _AppState createState() => _AppState();
 }
 
 class _AppState extends State<App> {
   _AppState() : super();
-
+  """
+  Class used for setting the initial state of the application, including routing
+  """
 
   late final _router = GoRouter(
     routes: <RouteBase>[
@@ -99,6 +106,9 @@ class _AppState extends State<App> {
   );
 
   static CustomTransitionPage<void> tweenWarpper(BuildContext context, GoRouterState state, Widget childPage) {
+    """
+    Defines transitions between pages
+    """
     return CustomTransitionPage<void>(
       key: state.pageKey,
       child: childPage,
@@ -114,6 +124,9 @@ class _AppState extends State<App> {
 
   @override
   Widget build(BuildContext context) {
+    """
+    Builds the whole application
+    """
     return Sizer(builder: (context, orientation, deviceType) {
         return MaterialApp.router(
           title: "Sigma",

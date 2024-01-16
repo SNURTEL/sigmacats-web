@@ -22,6 +22,9 @@ import 'settings.dart' as settings;
 import 'models/RaceListRead.dart';
 
 class CreateRacePage extends StatefulWidget {
+  """
+  Base class for making a widget for creating a new race event
+  """
   const CreateRacePage({Key? key}) : super(key: key);
 
   @override
@@ -29,6 +32,9 @@ class CreateRacePage extends StatefulWidget {
 }
 
 DateTime clipDay(DateTime d) {
+  """
+  Clips day from a given date
+  """
   if (!DateUtils.isSameDay(d, DateTime.now())) {
     return DateTime.now().copyWith(hour: 23, minute: 59, second: 59, millisecond: 0, microsecond: 0);
   } else {
@@ -37,6 +43,9 @@ DateTime clipDay(DateTime d) {
 }
 
 class _CreateRacePageState extends State<CreateRacePage> {
+  """
+  Class for race creation widget
+  """
   final nameEditingController = TextEditingController();
   final descriptionEditingController = TextEditingController();
   final requirementsEditingController = TextEditingController();
@@ -71,7 +80,6 @@ class _CreateRacePageState extends State<CreateRacePage> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     placeToPointsMapping = {LAST_PLACE: 0};
     lastPlacePointsController.text = placeToPointsMapping[LAST_PLACE].toString();
@@ -97,6 +105,9 @@ class _CreateRacePageState extends State<CreateRacePage> {
 
   @override
   Widget build(BuildContext context) {
+    """
+    Build a race creation widget
+    """
     return SingleChildScrollView(
       child: Center(
           child: SizedBox(
@@ -1047,6 +1058,9 @@ class _CreateRacePageState extends State<CreateRacePage> {
   }
 
   void fitMap() {
+    """
+    Fits map to the screen of the user
+    """
     mapController.fitCamera(
       CameraFit.bounds(
           bounds: LatLngBounds.fromPoints(points.where((e) => e.lat != null && e.lon != null).map((e) => LatLng(e.lat!, e.lon!)).toList()),
@@ -1055,6 +1069,9 @@ class _CreateRacePageState extends State<CreateRacePage> {
   }
 
   Future<TimeOfDay?> _selectTime(BuildContext context, {String? hintText, TimeOfDay? initialTime}) async {
+    """
+    Allows for selection of a time to begin or end the race
+    """
     TimeOfDay selectedTime = initialTime ?? TimeOfDay.now();
     final TimeOfDay? picked_s = await showTimePicker(
         context: context,
@@ -1072,6 +1089,9 @@ class _CreateRacePageState extends State<CreateRacePage> {
   }
 
   Future<DateTime?> _selectDate(BuildContext context, {DateTime? initialDate}) async {
+    """
+    Allows for selection of a date to begin or end the race
+    """
     DateTime selectedDate = initialDate ?? DateTime.now();
     final DateTime? picked_s = await showDatePicker(
         firstDate: DateTime.now(),

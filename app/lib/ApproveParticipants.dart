@@ -13,6 +13,9 @@ import 'network.dart';
 import 'settings.dart' as settings;
 
 class ApproveParticipantsPage extends StatefulWidget {
+  """
+  This class is used to create the basis of a page for approving participants
+  """
   final int id;
 
   const ApproveParticipantsPage(this.id, {Key? key}) : super(key: key);
@@ -22,6 +25,9 @@ class ApproveParticipantsPage extends StatefulWidget {
 }
 
 class _ApproveParticipantsPageState extends State<ApproveParticipantsPage> {
+  """
+  This class defines states of a page for approving participants
+  """
   late Future<RaceDetailRead> futureRace;
   late List<RaceParticipationRead> participations;
 
@@ -34,6 +40,9 @@ class _ApproveParticipantsPageState extends State<ApproveParticipantsPage> {
   }
 
   Future<RaceDetailRead> fetchRace() async {
+    """
+    Fetches races from server
+    """
     try {
       final response = await dio.get('${settings.apiBaseUrl}/api/coordinator/race/${widget.id}');
       final race = RaceDetailRead.fromMap(response.data);
@@ -50,6 +59,9 @@ class _ApproveParticipantsPageState extends State<ApproveParticipantsPage> {
 
   @override
   Widget build(BuildContext context) {
+    """
+    Builds the widget for approving participants
+    """
     return FutureBuilder(
       future: futureRace,
       builder: (context, snapshot) {
@@ -93,6 +105,9 @@ class _ApproveParticipantsPageState extends State<ApproveParticipantsPage> {
   }
 
   Widget Content(BuildContext context, RaceDetailRead race) {
+    """
+    Contains list of users to be accepted for a given race
+    """
     return SingleChildScrollView(
         child: Center(
             child: SizedBox(
