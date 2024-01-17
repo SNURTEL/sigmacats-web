@@ -13,10 +13,8 @@ import 'network.dart';
 import 'settings.dart' as settings;
 
 class ApproveParticipantsPage extends StatefulWidget {
-  """
-  This class is used to create the basis of a page for approving participants
-  """
-  final int id;
+  ///  This class is used to create the basis of a page for approving participants
+    final int id;
 
   const ApproveParticipantsPage(this.id, {Key? key}) : super(key: key);
 
@@ -25,10 +23,8 @@ class ApproveParticipantsPage extends StatefulWidget {
 }
 
 class _ApproveParticipantsPageState extends State<ApproveParticipantsPage> {
-  """
-  This class defines states of a page for approving participants
-  """
-  late Future<RaceDetailRead> futureRace;
+  ///  This class defines states of a page for approving participants
+    late Future<RaceDetailRead> futureRace;
   late List<RaceParticipationRead> participations;
 
   late Dio dio = getDio(context);
@@ -40,10 +36,8 @@ class _ApproveParticipantsPageState extends State<ApproveParticipantsPage> {
   }
 
   Future<RaceDetailRead> fetchRace() async {
-    """
-    Fetches races from server
-    """
-    try {
+    ///    Fetches races from server
+        try {
       final response = await dio.get('${settings.apiBaseUrl}/api/coordinator/race/${widget.id}');
       final race = RaceDetailRead.fromMap(response.data);
       participations = (race.race_participations?..sort((a, b) => (a.place_generated_overall ?? 0) - (b.place_generated_overall ?? 0)))
@@ -59,10 +53,8 @@ class _ApproveParticipantsPageState extends State<ApproveParticipantsPage> {
 
   @override
   Widget build(BuildContext context) {
-    """
-    Builds the widget for approving participants
-    """
-    return FutureBuilder(
+    ///    Builds the widget for approving participants
+        return FutureBuilder(
       future: futureRace,
       builder: (context, snapshot) {
         late Widget content;
@@ -105,10 +97,8 @@ class _ApproveParticipantsPageState extends State<ApproveParticipantsPage> {
   }
 
   Widget Content(BuildContext context, RaceDetailRead race) {
-    """
-    Contains list of users to be accepted for a given race
-    """
-    return SingleChildScrollView(
+    ///    Contains list of users to be accepted for a given race
+        return SingleChildScrollView(
         child: Center(
             child: SizedBox(
                 width: max(min(40.h, 300), 600),

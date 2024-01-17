@@ -13,10 +13,8 @@ import 'network.dart';
 import 'settings.dart' as settings;
 
 class RaceResultsPage extends StatefulWidget {
-  """
-  Base class for a page with race results
-  """
-  final int id;
+  ///  Base class for a page with race results
+    final int id;
 
   const RaceResultsPage(this.id, {Key? key}) : super(key: key);
 
@@ -25,10 +23,8 @@ class RaceResultsPage extends StatefulWidget {
 }
 
 class _RaceResultsPageState extends State<RaceResultsPage> {
-  """
-  Creates a widget used for showing results of races
-  """
-  late Future<RaceDetailRead> futureRace;
+  ///  Creates a widget used for showing results of races
+    late Future<RaceDetailRead> futureRace;
   late List<RaceParticipationRead> participations;
 
   late Dio dio = getDio(context);
@@ -56,10 +52,8 @@ class _RaceResultsPageState extends State<RaceResultsPage> {
   }
 
   Future<RaceDetailRead> fetchRace() async {
-    """
-    Fetches races from server
-    """
-    try {
+    ///    Fetches races from server
+        try {
       final response = await dio.get('${settings.apiBaseUrl}/api/coordinator/race/${widget.id}');
       final race = RaceDetailRead.fromMap(response.data);
       participations = (race.race_participations?..sort((a, b) => (a.place_generated_overall ?? 0) - (b.place_generated_overall ?? 0)))
@@ -75,10 +69,8 @@ class _RaceResultsPageState extends State<RaceResultsPage> {
 
   @override
   Widget build(BuildContext context) {
-    """
-    Build widget for showing the result of races
-    """
-    return FutureBuilder(
+    ///    Build widget for showing the result of races
+        return FutureBuilder(
       future: futureRace,
       builder: (context, snapshot) {
         late Widget content;
@@ -121,10 +113,8 @@ class _RaceResultsPageState extends State<RaceResultsPage> {
   }
 
   Widget Content(BuildContext context, RaceDetailRead race) {
-    """
-    Provides content for a widget displaying race results
-    """
-    return SingleChildScrollView(
+    ///    Provides content for a widget displaying race results
+        return SingleChildScrollView(
         child: Center(
             child: SizedBox(
                 width: max(min(40.h, 300), 600),
@@ -408,10 +398,8 @@ class _RaceResultsPageState extends State<RaceResultsPage> {
   }
 
   Future<void> _confirmationDialogBuilder(BuildContext context, Future<void> Function() onConfirm) {
-    """
-    Builds dialog box for confirming the race results by coordinator
-    """
-    return showDialog<void>(
+    ///    Builds dialog box for confirming the race results by coordinator
+        return showDialog<void>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(

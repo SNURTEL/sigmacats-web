@@ -11,20 +11,16 @@ import 'settings.dart' as settings;
 import 'notification.dart';
 
 class LoginPage extends StatefulWidget {
-  """
-  Base class used for creating a login page
-  """
-  const LoginPage({Key? key}) : super(key: key);
+  ///  Base class used for creating a login page
+    const LoginPage({Key? key}) : super(key: key);
 
   @override
   _LoginPageState createState() => _LoginPageState();
 }
 
 class _LoginPageState extends State<LoginPage> {
-  """
-  This class defines widget for a login page
-  """
-  final _formKey = GlobalKey<FormState>();
+  ///  This class defines widget for a login page
+    final _formKey = GlobalKey<FormState>();
   final _usernameEditingController = TextEditingController();
   final _passwordEditingController = TextEditingController();
 
@@ -42,10 +38,8 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    """
-    Build login widget
-    """
-    return Center(
+    ///    Build login widget
+        return Center(
         child: Scrollbar(
             child: SizedBox(
                 width: max(min(40.h, 300), 600),

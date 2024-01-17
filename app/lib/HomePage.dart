@@ -19,20 +19,16 @@ import 'settings.dart' as settings;
 import 'models/RaceListRead.dart';
 
 class HomePage extends StatefulWidget {
-  """
-  Base class for creating a Home Page widget
-  """
-  const HomePage({Key? key}) : super(key: key);
+  ///  Base class for creating a Home Page widget
+    const HomePage({Key? key}) : super(key: key);
 
   @override
   _HomePageState createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  """
-  Creates widget that displays a home page
-  """
-  late Future<List<RaceListRead>> futureRaces;
+  ///  Creates widget that displays a home page
+    late Future<List<RaceListRead>> futureRaces;
 
   late Dio dio = getDio(context);
 
@@ -43,10 +39,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<List<RaceListRead>> fetchRaceList() async {
-    """
-    Fetches races from the server
-    """
-    try {
+    ///    Fetches races from the server
+        try {
       final response = await dio.get('${settings.apiBaseUrl}/api/coordinator/race/');
       final List<dynamic> races = response.data;
       return races.map((race) => RaceListRead.fromMap(race)).toList();
@@ -58,10 +52,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    """
-    Builds the widget for displaying the home page
-    """
-    return FutureBuilder(
+    ///    Builds the widget for displaying the home page
+        return FutureBuilder(
       future: futureRaces,
       builder: (context, snapshot) {
         late Widget content;
@@ -106,20 +98,16 @@ class _HomePageState extends State<HomePage> {
 }
 
 class RaceCard extends StatelessWidget {
-  """
-  Creates a widget for displaying a shortened race information for a given race on a home page
-  """
-  final RaceListRead race;
+  ///  Creates a widget for displaying a shortened race information for a given race on a home page
+    final RaceListRead race;
   final Dio dio;
 
   const RaceCard(this.race, this.dio, {super.key});
 
   @override
   Widget build(BuildContext context) {
-    """
-    Builds widget for displaying a shortened race information for a given race on a home page
-    """
-    if (race.status == RaceStatus.ended && race.is_approved == false) {
+    ///    Builds widget for displaying a shortened race information for a given race on a home page
+        if (race.status == RaceStatus.ended && race.is_approved == false) {
       return FinishedCard(context);
     } else if (race.status == RaceStatus.ended) {
       return EndedCard(context);
@@ -131,10 +119,8 @@ class RaceCard extends StatelessWidget {
   }
 
   Widget PendingCard(BuildContext context) {
-    """
-    Builds a widget for a pending race
-    """
-    return Card(
+    ///    Builds a widget for a pending race
+        return Card(
       margin: const EdgeInsets.all(5.0),
       shadowColor: Colors.transparent,
       child: Column(
@@ -166,10 +152,8 @@ class RaceCard extends StatelessWidget {
   }
 
   Widget EndedCard(BuildContext context) {
-    """
-    Builds a widget for an ended race
-    """
-    return Card(
+    ///    Builds a widget for an ended race
+        return Card(
       margin: const EdgeInsets.all(5.0),
       child: ClipRect(
         child: Opacity(
@@ -181,10 +165,8 @@ class RaceCard extends StatelessWidget {
   }
 
   Widget InProgressCard(BuildContext context) {
-    """
-    Builds a widget for a race that is in progress
-    """
-    return Card(
+    ///    Builds a widget for a race that is in progress
+        return Card(
       margin: const EdgeInsets.all(5.0),
       color: Colors.greenAccent.withOpacity(0.2),
       shadowColor: Colors.transparent,
@@ -216,10 +198,8 @@ class RaceCard extends StatelessWidget {
   }
 
   Widget FinishedCard(BuildContext context) {
-    """
-    Builds a widget for a finished race
-    """
-    return Card(
+    ///    Builds a widget for a finished race
+        return Card(
       margin: const EdgeInsets.all(5.0),
       color: Colors.orangeAccent.withOpacity(0.2),
       shadowColor: Colors.transparent,
@@ -253,10 +233,8 @@ class RaceCard extends StatelessWidget {
   }
 
   Widget CardContent(BuildContext context) {
-    """
-    Builds a widget for displaying a content of a race card
-    """
-    return Column(children: [
+    ///    Builds a widget for displaying a content of a race card
+        return Column(children: [
       Container(
         // Fixed height
         width: double.infinity,

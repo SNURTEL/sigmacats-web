@@ -15,20 +15,16 @@ import 'network.dart';
 import 'settings.dart' as settings;
 
 class SeasonsPage extends StatefulWidget {
-  """
-  Base class for creating season page widget
-  """
-  const SeasonsPage({Key? key}) : super(key: key);
+  ///  Base class for creating season page widget
+    const SeasonsPage({Key? key}) : super(key: key);
 
   @override
   _SeasonsPageState createState() => _SeasonsPageState();
 }
 
 class _SeasonsPageState extends State<SeasonsPage> {
-  """
-  Creates widget for displaying and interacting with seasons
-  """
-  late Future<List<SeasonRead>> futureSeasons;
+  ///  Creates widget for displaying and interacting with seasons
+    late Future<List<SeasonRead>> futureSeasons;
 
   late Dio dio = getDio(context);
 
@@ -42,10 +38,8 @@ class _SeasonsPageState extends State<SeasonsPage> {
   }
 
   Future<List<SeasonRead>> fetchSeasons() async {
-    """
-    Fetches league seasons from server
-    """
-    try {
+    ///    Fetches league seasons from server
+        try {
       final response = await dio.get('${settings.apiBaseUrl}/api/coordinator/season/');
       final List<dynamic> races = response.data;
       return races.map((season) => SeasonRead.fromMap(season)).toList();
@@ -57,10 +51,8 @@ class _SeasonsPageState extends State<SeasonsPage> {
 
   @override
   Widget build(BuildContext context) {
-    """
-    Builds widget for displaying and interacting with seasons
-    """
-    return FutureBuilder(
+    ///    Builds widget for displaying and interacting with seasons
+        return FutureBuilder(
       future: futureSeasons,
       builder: (context, snapshot) {
         late Widget content;
@@ -81,10 +73,8 @@ class _SeasonsPageState extends State<SeasonsPage> {
   }
 
   Widget Content(BuildContext context, List<SeasonRead> seasons) {
-    """
-    Creates content for a widget that displays information about seasons
-    """
-    final seasonsSorted = seasons
+    ///    Creates content for a widget that displays information about seasons
+        final seasonsSorted = seasons
       ..sort(((a, b) =>
       -a.startTimestamp
           .difference(b.startTimestamp)

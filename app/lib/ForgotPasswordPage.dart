@@ -13,19 +13,15 @@ import 'settings.dart' as settings;
 import 'notification.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
-  """
-  Base class for creating a page for resetting password
-  """
-  const ForgotPasswordPage({Key? key}) : super(key: key);
+  ///  Base class for creating a page for resetting password
+    const ForgotPasswordPage({Key? key}) : super(key: key);
 
   @override
   _ForgotPasswordPageState createState() => _ForgotPasswordPageState();
 }
 
 class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
-  """
-  Contains widget for resetting the password
-  """
+  ///  Contains widget for resetting the password
 
   final _formKey = GlobalKey<FormState>();
   final _emailEditingController = TextEditingController();
@@ -45,10 +41,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
   @override
   Widget build(BuildContext context) {
-    """
-    Create widget for password resetting page
-    """
-    return Center(
+    ///    Create widget for password resetting page
+        return Center(
         child: Scrollbar(
             child: SizedBox(
                 width: max(min(40.h, 300), 600),

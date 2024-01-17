@@ -1,13 +1,11 @@
 import 'package:intl/intl.dart';
 
-"""
-This file defines a model for reading a race
-"""
+///This file defines a model for reading a race
+
 
 enum RaceStatus {
-  """
-  Holds different possible statuses of a race
-  """
+  ///  Holds different possible statuses of a race
+
   pending("pending"),
   in_progress("in_progress"),
   ended("ended"),
@@ -20,9 +18,8 @@ enum RaceStatus {
 }
 
 class RaceListRead {
-  """
-  Defines a class for reading a race
-  """
+  ///  Defines a class for reading a race
+
   final int id;
   final RaceStatus status;
   final String name;
@@ -83,9 +80,8 @@ class RaceListRead {
 
   @override
   String toString() {
-    """
-    Converts race details into string
-    """
+    ///    Converts race details into string
+
     return 'RaceListEntry{' +
         ' id: $id,' +
         ' status: $status,' +
@@ -114,9 +110,8 @@ class RaceListRead {
     int? season_id,
     bool? is_approved
   }) {
-    """
-    Copies details between races
-    """
+    ///    Copies details between races
+
     return RaceListRead(
       id: id ?? this.id,
       status: status ?? this.status,
@@ -133,9 +128,8 @@ class RaceListRead {
   }
 
   Map<String, dynamic> toMap() {
-    """
-    Converts race to map form
-    """
+    ///    Converts race to map form
+    
     return {
       'id': this.id,
       'status': this.status.value,
@@ -152,9 +146,8 @@ class RaceListRead {
   }
 
   factory RaceListRead.fromMap(Map<String, dynamic> map) {
-    """
-    Reads race from map
-    """
+    ///    Reads race from map
+
     return RaceListRead(
       id: map['id'] as int,
       status: RaceStatus.values.byName(map['status']),
