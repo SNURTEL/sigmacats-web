@@ -393,7 +393,7 @@ class _RaceResultsPageState extends State<RaceResultsPage> {
                                         data: participations
                                             .map((p) => {"id": p.id, "place_assigned_overall": p.place_assigned_overall})
                                             .toList());
-                                    showNotification(context, "Sukces!");
+                                    showSnackbarMessage(context, "Sukces!");
                                     await Future.delayed(Duration(seconds: 4));
                                     context.go("/");
                                   } on DioException catch (e) {
@@ -401,7 +401,7 @@ class _RaceResultsPageState extends State<RaceResultsPage> {
                                       confirmButtonEnabled = true;
                                     });
                                     log("Result confirmation error: ", error: e);
-                                    showNotification(context, "Błąd podczas zatwierdzania wyników.");
+                                    showSnackbarMessage(context, "Błąd podczas zatwierdzania wyników.");
                                   }
                                 }),
                             child: Text("Zatwierdź wyniki")))

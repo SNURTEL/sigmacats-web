@@ -291,7 +291,7 @@ class RaceCard extends StatelessWidget {
                       html.window.open("${settings.apiBaseUrl}${gpxPath}", "dfsdf");
                     } on DioException catch (e) {
                       log("Gpx fetch error: ", error: e);
-                      showNotification(context, "Błąd podczas pobierania pliku.");
+                      showSnackbarMessage(context, "Błąd podczas pobierania pliku.");
                     }
                   },
                   child: Padding(

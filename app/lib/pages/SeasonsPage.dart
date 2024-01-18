@@ -217,7 +217,7 @@ class _SeasonsPageState extends State<SeasonsPage> {
                                           ),
                                           onPressed: () async {
                                             if (!_formKey.currentState!.validate()) {
-                                              showNotification(context, 'Formularz zawiera błąd.');
+                                              showSnackbarMessage(context, 'Formularz zawiera błąd.');
                                               return;
                                             }
 
@@ -226,14 +226,14 @@ class _SeasonsPageState extends State<SeasonsPage> {
                                             try {
                                               var response = await dio.post('${settings.apiBaseUrl}/api/coordinator/season/start-new',
                                                   data: requestData);
-                                              showNotification(context, 'Utworzono sezon ${newSeasonNameTextFieldController.text}!');
+                                              showSnackbarMessage(context, 'Utworzono sezon ${newSeasonNameTextFieldController.text}!');
                                               setState(() {
                                                 futureSeasons = fetchSeasons();
                                               });
                                               Navigator.of(context).pop();
                                             } on DioException catch (e) {
                                               log("Season creation error: ", error: e);
-                                              showNotification(context, 'Błąd podczas tworzenia sezonu.');
+                                              showSnackbarMessage(context, 'Błąd podczas tworzenia sezonu.');
                                             }
                                           },
                                           child: Text("Rozpocznij nowy"))

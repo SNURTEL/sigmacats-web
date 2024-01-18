@@ -12,7 +12,7 @@ class UnauthorizedRedirectInterceptor extends Interceptor {
   void onError(DioException err, ErrorInterceptorHandler handler) {
     ///    Redirect to login page and show snackbar
     if (err.response?.statusCode == 401) {
-      showNotification(context, "Sesja wygasła.");
+      showSnackbarMessage(context, "Sesja wygasła.");
       context.go('/login');
     }
     handler.next(err);

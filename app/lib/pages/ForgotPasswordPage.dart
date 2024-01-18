@@ -92,7 +92,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                   });
 
                                   if (!_formKey.currentState!.validate()) {
-                                    showNotification(context, 'Formularz zawiera błąd.');
+                                    showSnackbarMessage(context, 'Formularz zawiera błąd.');
                                     setState(() {
                                       _isLoading = false;
                                     });
@@ -105,10 +105,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
                                   try {
                                     await dio.post('${settings.apiBaseUrl}/api/auth/forgot-password', data: jsonEncode(requestData));
-                                    showNotification(context, "Wysłano wiadomość! Sprawdź skrzynkę.");
+                                    showSnackbarMessage(context, "Wysłano wiadomość! Sprawdź skrzynkę.");
                                   } on DioException catch (e) {
                                     // backend always returns 202
-                                    showNotification(context, "Błąd podczas resetowania hasła.");
+                                    showSnackbarMessage(context, "Błąd podczas resetowania hasła.");
                                   }
                                   setState(() {
                                     _isLoading = false;

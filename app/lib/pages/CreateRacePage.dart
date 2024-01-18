@@ -190,7 +190,7 @@ class _CreateRacePageState extends State<CreateRacePage> {
                                         });
                                       } on DioException catch (e) {
                                         log("File upload error: ", error: e);
-                                        showNotification(context, "Błąd podczas przesyłania pliku.");
+                                        showSnackbarMessage(context, "Błąd podczas przesyłania pliku.");
                                         setState(() {
                                           isEventGraphicUploading = false;
                                         });
@@ -456,7 +456,7 @@ class _CreateRacePageState extends State<CreateRacePage> {
                                                 });
                                               } on DioException catch (e) {
                                                 log("File upload error: ", error: e);
-                                                showNotification(context, "Błąd podczas przesyłania pliku.");
+                                                showSnackbarMessage(context, "Błąd podczas przesyłania pliku.");
                                                 setState(() {
                                                   isRouteUploading = false;
                                                 });
@@ -970,7 +970,7 @@ class _CreateRacePageState extends State<CreateRacePage> {
                                 });
                               } on DioException catch (e) {
                                 log("File upload error: ", error: e);
-                                showNotification(context, "Błąd podczas przesyłania pliku.");
+                                showSnackbarMessage(context, "Błąd podczas przesyłania pliku.");
 
                                 setState(() {
                                   isSponsorBannerUploading = false;
@@ -1010,7 +1010,7 @@ class _CreateRacePageState extends State<CreateRacePage> {
                             });
 
                             if (!_formKey.currentState!.validate()) {
-                              showNotification(context, 'Formularz zawiera błąd.');
+                              showSnackbarMessage(context, 'Formularz zawiera błąd.');
                               setState(() {
                                 isLoading = false;
                               });
@@ -1035,7 +1035,7 @@ class _CreateRacePageState extends State<CreateRacePage> {
                             };
                             try {
                               var response = await dio.post('${settings.apiBaseUrl}/api/coordinator/race/create', data: requestData);
-                              showNotification(context, 'Utworzono wyścig ${nameEditingController.text}!');
+                              showSnackbarMessage(context, 'Utworzono wyścig ${nameEditingController.text}!');
                               setState(() {
                                 successfullyCreated = true;
                               });
@@ -1046,7 +1046,7 @@ class _CreateRacePageState extends State<CreateRacePage> {
                               setState(() {
                                 isLoading = false;
                               });
-                              showNotification(context, 'Błąd podczas tworzenia wyścigu.');
+                              showSnackbarMessage(context, 'Błąd podczas tworzenia wyścigu.');
                             }
                           },
                     child: Row(

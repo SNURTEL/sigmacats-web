@@ -140,7 +140,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                                   });
 
                                   if (!_formKey.currentState!.validate()) {
-                                    showNotification(context, 'Formularz zawiera błąd.');
+                                    showSnackbarMessage(context, 'Formularz zawiera błąd.');
                                     setState(() {
                                       _isLoading = false;
                                     });
@@ -154,14 +154,14 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
 
                                   try {
                                     await dio.post('${settings.apiBaseUrl}/api/auth/reset-password', data: jsonEncode(requestData));
-                                    showNotification(context, 'Zresetowano hasło!');
+                                    showSnackbarMessage(context, 'Zresetowano hasło!');
                                     await Future.delayed(Duration(seconds: 4));
                                     context.go('/login');
                                   } on DioException catch (e) {
                                     setState(() {
                                       _isLoading = false;
                                     });
-                                    showNotification(context, 'Błąd resetowania hasła.');
+                                    showSnackbarMessage(context, 'Błąd resetowania hasła.');
                                   }
                                 },
                           child: Padding(

@@ -120,7 +120,7 @@ class _LoginPageState extends State<LoginPage> {
                                   });
 
                                   if (!_formKey.currentState!.validate()) {
-                                    showNotification(context, 'Formularz zawiera błąd.');
+                                    showSnackbarMessage(context, 'Formularz zawiera błąd.');
                                     setState(() {
                                       _isLoading = false;
                                     });
@@ -140,7 +140,7 @@ class _LoginPageState extends State<LoginPage> {
                                       setState(() {
                                         _isLoading = false;
                                       });
-                                      showNotification(context, 'Niepoprawne konto.');
+                                      showSnackbarMessage(context, 'Niepoprawne konto.');
                                       await dio.post('${settings.apiBaseUrl}/api/auth/cookie/logout');
                                       return;
                                     }
@@ -152,9 +152,9 @@ class _LoginPageState extends State<LoginPage> {
                                       _isLoading = false;
                                     });
                                     if (e.response?.statusCode == 400 && e.response?.data["detail"] == "LOGIN_BAD_CREDENTIALS") {
-                                      showNotification(context, 'Niepoprawny adres email bądź hasło.');
+                                      showSnackbarMessage(context, 'Niepoprawny adres email bądź hasło.');
                                     } else {
-                                      showNotification(context, 'Błąd logowania.');
+                                      showSnackbarMessage(context, 'Błąd logowania.');
                                     }
                                   }
                                 },

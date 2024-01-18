@@ -59,11 +59,11 @@ class _AppScaffoldState extends State<AppScaffold> {
                           onTap: () {
                             try {
                               dio.post("${settings.apiBaseUrl}/api/auth/cookie/logout");
-                              showNotification(context, "Wylogowano.");
+                              showSnackbarMessage(context, "Wylogowano.");
                               context.go('/login');
                             } on DioException catch (e) {
                               log("Logout error: ", error: e);
-                              showNotification(context, "Błąd wylogowywania.");
+                              showSnackbarMessage(context, "Błąd wylogowywania.");
                               return;
                             }
                           },
