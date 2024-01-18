@@ -3,11 +3,14 @@ import 'dart:math' as math;
 
 import 'package:app/models/RaceDetailRead.dart';
 import 'package:app/models/RaceListRead.dart';
+import 'package:app/models/RaceTrackDialog.dart';
 import 'package:app/util/extensions.dart';
 import 'package:app/util/notification.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:gpx/gpx.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:sizer/sizer.dart';
 import 'dart:developer';
 
@@ -215,19 +218,65 @@ class _RaceResultsPageState extends State<RaceResultsPage> {
                                             children: [
                                               Text(
                                                 participations[index].rider_username,
-                                                style: Theme.of(context).textTheme.titleLarge,
+                                                style: Theme.of(context).textTheme.titleMedium,
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
                                               ),
                                               Text(
-                                                "${participations[index].rider_name} ${participations[index].rider_surname}",
+                                                "${participations[index].rider_name} ${participations[index].rider_surname} | " +
+                                                    (participations[index].time_seconds?.let((it) => it >= 3600
+                                                            ? "${(it / 3600).floor()}h"
+                                                            : "" + " ${(modulo(it, 3600) / 60).floor()}min ${modulo(it, 60)}s") ??
+                                                        ""),
                                                 style: Theme.of(context).textTheme.labelMedium,
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
                                               ),
                                             ],
                                           ),
                                           Spacer(),
-                                          Text((participations[index].time_seconds?.let((it) => it >= 3600
-                                                  ? "${(it / 3600).floor()}h"
-                                                  : "" + " ${(modulo(it, 3600) / 60).floor()}min ${modulo(it, 60)}s") ??
-                                              ""))
+                                          SizedBox(
+                                            width: 8,
+                                          ),
+                                          IconButton(
+                                              onPressed: () async {
+                                                try {
+                                                  final raceDetails = await futureRace;
+                                                  final routeResponse =
+                                                      await dio.get('${settings.apiBaseUrl}${raceDetails.checkpoints_gpx_file}');
+                                                  final routeGpx = GpxReader().fromString(routeResponse.data);
+                                                  final routePoints = routeGpx.trks.first.trksegs.first.trkpts
+                                                      .where((element) =>
+                                                          element.lat != null &&
+                                                          element.lon != null &&
+                                                          element.lat!.isFinite &&
+                                                          element.lon!.isFinite)
+                                                      .map((e) => LatLng(e.lat!, e.lon!))
+                                                      .toList();
+
+                                                  final rideResponse =
+                                                      await dio.get('${settings.apiBaseUrl}${participations[index].ride_gpx_file}');
+                                                  final rideGpx = GpxReader().fromString(rideResponse.data);
+                                                  final ridePoints = rideGpx.trks.first.trksegs.first.trkpts
+                                                      .where((element) =>
+                                                          element.lat != null &&
+                                                          element.lon != null &&
+                                                          element.lat!.isFinite &&
+                                                          element.lon!.isFinite)
+                                                      .map((e) => LatLng(e.lat!, e.lon!))
+                                                      .toList();
+
+                                                  showDialog(
+                                                      context: context,
+                                                      builder: (BuildContext context) {
+                                                        return TrackDialog(routePoints, ridePoints, participations[index].rider_username);
+                                                      });
+                                                } on DioException catch (e) {
+                                                  showSnackbarMessage(context, "Błąd ładowania trasy");
+                                                  return;
+                                                }
+                                              },
+                                              icon: Icon(Icons.route_sharp))
                                         ],
                                       ),
                                     ),
@@ -452,4 +501,3 @@ class _RaceResultsPageState extends State<RaceResultsPage> {
     );
   }
 }
-

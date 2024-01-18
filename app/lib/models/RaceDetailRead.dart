@@ -278,6 +278,7 @@ class RaceParticipationRead {
   final String rider_surname;
   final String rider_username;
   final int? time_seconds;
+  final String? ride_gpx_file;
 
 //<editor-fold desc="Data Methods">
   RaceParticipationRead({
@@ -292,6 +293,7 @@ class RaceParticipationRead {
     required this.rider_surname,
     required this.rider_username,
     this.time_seconds,
+    this.ride_gpx_file,
   });
 
   @override
@@ -309,7 +311,8 @@ class RaceParticipationRead {
           rider_name == other.rider_name &&
           rider_surname == other.rider_surname &&
           rider_username == other.rider_username &&
-          time_seconds == other.time_seconds);
+          time_seconds == other.time_seconds &&
+          ride_gpx_file == other.ride_gpx_file);
 
   @override
   int get hashCode => // overrides get hashcode method
@@ -323,7 +326,8 @@ class RaceParticipationRead {
       rider_name.hashCode ^
       rider_surname.hashCode ^
       rider_username.hashCode ^
-      time_seconds.hashCode;
+      time_seconds.hashCode ^
+      ride_gpx_file.hashCode;
 
   @override
   String toString() {
@@ -339,6 +343,7 @@ class RaceParticipationRead {
         ' rider_surname: $rider_surname,' +
         ' rider_username: $rider_username,' +
         ' time_seconds: $time_seconds,' +
+        ' ride_gpx_file: $ride_gpx_file,' +
         '}';
   }
 
@@ -354,6 +359,7 @@ class RaceParticipationRead {
     String? rider_surname,
     String? rider_username,
     int? time_seconds,
+    String? ride_gpx_file
   }) {
     return RaceParticipationRead(
       id: id ?? this.id,
@@ -367,6 +373,7 @@ class RaceParticipationRead {
       rider_surname: rider_surname ?? this.rider_surname,
       rider_username: rider_username ?? this.rider_username,
       time_seconds: time_seconds ?? this.time_seconds,
+      ride_gpx_file: ride_gpx_file ?? this.ride_gpx_file
     );
   }
 
@@ -383,6 +390,7 @@ class RaceParticipationRead {
       'rider_surname': this.rider_surname,
       'rider_username': this.rider_username,
       'time_seconds': this.time_seconds,
+      'ride_gpx_file': this.ride_gpx_file
     };
   }
 
@@ -398,7 +406,8 @@ class RaceParticipationRead {
         rider_name: map['rider_name'] as String,
         rider_surname: map['rider_surname'] as String,
         rider_username: map['rider_username'] as String,
-        time_seconds: map['time_seconds'] as int?);
+        time_seconds: map['time_seconds'] as int?,
+        ride_gpx_file: map['ride_gpx_file'] as String?);
   }
 
 //</editor-fold>
