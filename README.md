@@ -6,6 +6,13 @@
 - If you are using Android Studio, you may need to manually setup SDK paths. Find the Flutter SDK install path by `flutter doctor -v` and set it as **both** Dart and Flutter SDK path in IDE settings.
 - Before running the app, you will need to copy `.env.sample` to `.env`. You may want to configure backend URL and upload port in the envfile.
 
+
+### Install requirements
+
+```shell
+flutter pub get
+```
+
 ### Run the app using Chrome debug server
 
 ```shell
