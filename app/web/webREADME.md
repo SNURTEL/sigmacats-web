@@ -1,0 +1,1 @@
+This folder contains basic necessary files for generating a coordinator web app

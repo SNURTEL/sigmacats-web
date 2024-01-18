@@ -2,7 +2,10 @@ import 'package:intl/intl.dart';
 
 import 'RaceListRead.dart';
 
+///This file defines response schema models for reading race details and race participation
+
 enum RaceTemperature {
+  ///  Holds different possible race temperatures
   normal("normal"),
   hot("hot"),
   cold("cold");
@@ -13,6 +16,7 @@ enum RaceTemperature {
 }
 
 enum RaceWind {
+  ///  Holds different possible wind states
   zero("zero"),
   light("light"),
   heavy("heavy");
@@ -23,6 +27,7 @@ enum RaceWind {
 }
 
 enum RaceRain {
+  ///  Holds different possible rain intensities during a race
   zero("zero"),
   light("light"),
   heavy("heavy");
@@ -33,6 +38,7 @@ enum RaceRain {
 }
 
 enum RaceParticipationStatus {
+  ///  Holds different possible statuses of race participation
   pending("pending"),
   approved("approved"),
   rejected("rejected");
@@ -43,6 +49,8 @@ enum RaceParticipationStatus {
 }
 
 class RaceDetailRead {
+  ///  Response schema for race detail read
+
   final int id;
   final RaceStatus status;
   final String name;
@@ -88,7 +96,7 @@ class RaceDetailRead {
   });
 
   @override
-  bool operator ==(Object other) =>
+  bool operator ==(Object other) => // Overrides == operator to compare races
       identical(this, other) ||
       (other is RaceDetailRead &&
           runtimeType == other.runtimeType &&
@@ -113,7 +121,7 @@ class RaceDetailRead {
           is_approved == other.is_approved);
 
   @override
-  int get hashCode =>
+  int get hashCode => // overrides get hashcode method
       id.hashCode ^
       status.hashCode ^
       name.hashCode ^
@@ -235,7 +243,8 @@ class RaceDetailRead {
       description: map['description'] as String,
       requirements: map['requirements'] as String?,
       no_laps: map['no_laps'] as int,
-      meetup_timestamp: map['meetup_timestamp'] != null ? DateFormat("yyyy-MM-ddTHH:mm:ss").parse(map['meetup_timestamp'], true).toLocal() : null,
+      meetup_timestamp:
+          map['meetup_timestamp'] != null ? DateFormat("yyyy-MM-ddTHH:mm:ss").parse(map['meetup_timestamp'], true).toLocal() : null,
       start_timestamp: DateFormat("yyyy-MM-ddTHH:mm:ss").parse(map['start_timestamp'], true).toLocal(),
       end_timestamp: DateFormat("yyyy-MM-ddTHH:mm:ss").parse(map['end_timestamp'], true).toLocal(),
       event_graphic_file: map['event_graphic_file'] as String,
@@ -256,6 +265,8 @@ class RaceDetailRead {
 }
 
 class RaceParticipationRead {
+  ///  Response schema for reading race participations
+
   final int id;
   final int race_id;
   final int rider_id;
@@ -284,7 +295,7 @@ class RaceParticipationRead {
   });
 
   @override
-  bool operator ==(Object other) =>
+  bool operator ==(Object other) => // Overrides == operator to compare races
       identical(this, other) ||
       (other is RaceParticipationRead &&
           runtimeType == other.runtimeType &&
@@ -301,7 +312,7 @@ class RaceParticipationRead {
           time_seconds == other.time_seconds);
 
   @override
-  int get hashCode =>
+  int get hashCode => // overrides get hashcode method
       id.hashCode ^
       race_id.hashCode ^
       rider_id.hashCode ^

@@ -1,18 +1,22 @@
 import 'package:intl/intl.dart';
 
+///This file defines response schema model for reading a race
+
 enum RaceStatus {
+  ///  Holds different possible statuses of a race
   pending("pending"),
   in_progress("in_progress"),
   ended("ended"),
   cancelled("cancelled");
 
   const RaceStatus(this.value);
+
   final String value;
-
-
 }
 
 class RaceListRead {
+  ///  Schema model for reading a race
+
   final int id;
   final RaceStatus status;
   final String name;
@@ -41,7 +45,7 @@ class RaceListRead {
   });
 
   @override
-  bool operator ==(Object other) =>
+  bool operator ==(Object other) => // Overrides == operator to compare races
       identical(this, other) ||
       (other is RaceListRead &&
           runtimeType == other.runtimeType &&
@@ -58,7 +62,7 @@ class RaceListRead {
           is_approved == other.is_approved);
 
   @override
-  int get hashCode =>
+  int get hashCode => // overrides get hashcode method
       id.hashCode ^
       status.hashCode ^
       name.hashCode ^
@@ -88,32 +92,30 @@ class RaceListRead {
         '}';
   }
 
-  RaceListRead copyWith({
-    int? id,
-    RaceStatus? status,
-    String? name,
-    String? description,
-    int? no_laps,
-    DateTime? meetup_timestamp,
-    DateTime? start_timestamp,
-    DateTime? end_timestamp,
-    String? event_graphic_file,
-    int? season_id,
-    bool? is_approved
-  }) {
+  RaceListRead copyWith(
+      {int? id,
+      RaceStatus? status,
+      String? name,
+      String? description,
+      int? no_laps,
+      DateTime? meetup_timestamp,
+      DateTime? start_timestamp,
+      DateTime? end_timestamp,
+      String? event_graphic_file,
+      int? season_id,
+      bool? is_approved}) {
     return RaceListRead(
-      id: id ?? this.id,
-      status: status ?? this.status,
-      name: name ?? this.name,
-      description: description ?? this.description,
-      no_laps: no_laps ?? this.no_laps,
-      meetup_timestamp: meetup_timestamp ?? this.meetup_timestamp,
-      start_timestamp: start_timestamp ?? this.start_timestamp,
-      end_timestamp: end_timestamp ?? this.end_timestamp,
-      event_graphic_file: event_graphic_file ?? this.event_graphic_file,
-      season_id: season_id ?? this.season_id,
-      is_approved: is_approved ?? this.is_approved
-    );
+        id: id ?? this.id,
+        status: status ?? this.status,
+        name: name ?? this.name,
+        description: description ?? this.description,
+        no_laps: no_laps ?? this.no_laps,
+        meetup_timestamp: meetup_timestamp ?? this.meetup_timestamp,
+        start_timestamp: start_timestamp ?? this.start_timestamp,
+        end_timestamp: end_timestamp ?? this.end_timestamp,
+        event_graphic_file: event_graphic_file ?? this.event_graphic_file,
+        season_id: season_id ?? this.season_id,
+        is_approved: is_approved ?? this.is_approved);
   }
 
   Map<String, dynamic> toMap() {
@@ -139,7 +141,8 @@ class RaceListRead {
       name: map['name'] as String,
       description: map['description'] as String,
       no_laps: map['no_laps'] as int,
-      meetup_timestamp: map['meetup_timestamp'] != null ? DateFormat("yyyy-MM-ddTHH:mm:ss").parse(map['meetup_timestamp'], true).toLocal() : null,
+      meetup_timestamp:
+          map['meetup_timestamp'] != null ? DateFormat("yyyy-MM-ddTHH:mm:ss").parse(map['meetup_timestamp'], true).toLocal() : null,
       start_timestamp: DateFormat("yyyy-MM-ddTHH:mm:ss").parse(map['start_timestamp'], true).toLocal(),
       end_timestamp: DateFormat("yyyy-MM-ddTHH:mm:ss").parse(map['end_timestamp'], true).toLocal(),
       event_graphic_file: map['event_graphic_file'] as String,
@@ -150,5 +153,3 @@ class RaceListRead {
 
 //</editor-fold>
 }
-
-

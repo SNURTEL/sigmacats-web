@@ -1,26 +1,29 @@
-import 'package:app/AppScaffold.dart';
-import 'package:app/ApproveParticipants.dart';
-import 'package:app/CreateRacePage.dart';
-import 'package:app/ForgotPasswordPage.dart';
-import 'package:app/RaceResults.dart';
-import 'package:app/ResetPasswordPage.dart';
-import 'package:app/Seasons.dart';
-import 'package:app/theme/Color.dart';
+import 'package:app/components/AppScaffold.dart';
+import 'package:app/pages/ApproveParticipantsPage.dart';
+import 'package:app/pages/CreateRacePage.dart';
+import 'package:app/pages/ForgotPasswordPage.dart';
+import 'package:app/pages/RaceResultsPage.dart';
+import 'package:app/pages/ResetPasswordPage.dart';
+import 'package:app/pages/SeasonsPage.dart';
+import 'package:app/pages/HomePage.dart';
+import 'package:app/pages/LoginPage.dart';
+
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:provider/provider.dart';
-import 'settings.dart' as settings;
-import 'package:app/HomePage.dart';
-import 'package:app/LoginPage.dart';
+
+import 'package:app/theme/Color.dart';
+import 'util/settings.dart' as settings;
 
 void main() async {
+  ///  Runs the application
   await dotenv.load(fileName: "../.env");
   settings.apiBaseUrl = dotenv.env["FLUTTER_FASTAPI_HOST"] ?? "http://localhost:8000";
-  settings.uploadBaseUrl = '${dotenv.env["FLUTTER_FASTAPI_HOST"] ?? "http://localhost"}:${dotenv.env["FLUTTER_FASTAPI_UPLOAD_PORT"] ?? 5050}' ;
+  settings.uploadBaseUrl =
+      '${dotenv.env["FLUTTER_FASTAPI_HOST"] ?? "http://localhost"}:${dotenv.env["FLUTTER_FASTAPI_UPLOAD_PORT"] ?? 5050}';
 
   usePathUrlStrategy();
   initializeDateFormatting('pl_PL', null);
@@ -28,7 +31,7 @@ void main() async {
 }
 
 class App extends StatefulWidget {
-
+  ///  App class used to build the application, includes states
   @override
   _AppState createState() => _AppState();
 }
@@ -36,6 +39,7 @@ class App extends StatefulWidget {
 class _AppState extends State<App> {
   _AppState() : super();
 
+  ///  Class used for setting the initial state of the application, including page navigation
 
   late final _router = GoRouter(
     routes: <RouteBase>[
@@ -90,15 +94,14 @@ class _AppState extends State<App> {
       GoRoute(
         path: '/reset-password',
         pageBuilder: (BuildContext context, GoRouterState state) {
-          return tweenWarpper(context, state, Scaffold(body: ResetPasswordPage(
-            state.uri.queryParameters['token'] ?? "dude-what"
-          )));
+          return tweenWarpper(context, state, Scaffold(body: ResetPasswordPage(state.uri.queryParameters['token'] ?? "dude-what")));
         },
       ),
     ],
   );
 
   static CustomTransitionPage<void> tweenWarpper(BuildContext context, GoRouterState state, Widget childPage) {
+    ///    Adds tween effect to page transition
     return CustomTransitionPage<void>(
       key: state.pageKey,
       child: childPage,
@@ -114,7 +117,9 @@ class _AppState extends State<App> {
 
   @override
   Widget build(BuildContext context) {
-    return Sizer(builder: (context, orientation, deviceType) {
+    ///    Builds the whole application
+    return Sizer(
+      builder: (context, orientation, deviceType) {
         return MaterialApp.router(
           title: "Sigma",
           theme: ThemeData(useMaterial3: true, colorScheme: lightColorScheme),

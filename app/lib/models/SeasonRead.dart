@@ -1,7 +1,9 @@
-
 import 'package:intl/intl.dart';
 
+///  Response schema model for reading a season
+
 class SeasonRead {
+  ///  Season read schema model
   final int id;
   final String name;
   final DateTime startTimestamp;
@@ -16,7 +18,7 @@ class SeasonRead {
   });
 
   @override
-  bool operator ==(Object other) =>
+  bool operator ==(Object other) => // overrides == operator
       identical(this, other) ||
       (other is SeasonRead &&
           runtimeType == other.runtimeType &&
