@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 void showNotification(BuildContext context, String message) {
-  ///  Show notification
+  ///  Show notification in snackbar
   final snackBar = SnackBar(
     content: Text(message),
     duration: const Duration(seconds: 3),

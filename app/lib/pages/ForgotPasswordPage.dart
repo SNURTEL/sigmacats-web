@@ -1,20 +1,18 @@
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:app/network.dart';
-import 'package:dio/browser.dart';
+import 'package:app/util/network.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sizer/sizer.dart';
 import 'package:dio/dio.dart';
-import 'settings.dart' as settings;
+import '../util/settings.dart' as settings;
 
-
-import 'notification.dart';
+import '../util/notification.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
   ///  Base class for creating a page for resetting password
-    const ForgotPasswordPage({Key? key}) : super(key: key);
+  const ForgotPasswordPage({Key? key}) : super(key: key);
 
   @override
   _ForgotPasswordPageState createState() => _ForgotPasswordPageState();
@@ -38,11 +36,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     super.initState();
   }
 
-
   @override
   Widget build(BuildContext context) {
     ///    Create widget for password resetting page
-        return Center(
+    return Center(
         child: Scrollbar(
             child: SizedBox(
                 width: max(min(40.h, 300), 600),
@@ -116,7 +113,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                   setState(() {
                                     _isLoading = false;
                                   });
-
                                 },
                           child: Padding(
                             padding: const EdgeInsets.all(8.0),
@@ -132,9 +128,13 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                         SizedBox(
                           width: 32,
                         ),
-                        TextButton(onPressed: _isLoading ? null : () {
-                          context.go('/login');
-                        }, child: Text("Powrót do ekranu logowania")),
+                        TextButton(
+                            onPressed: _isLoading
+                                ? null
+                                : () {
+                                    context.go('/login');
+                                  },
+                            child: Text("Powrót do ekranu logowania")),
                       ],
                     )
                   ]),

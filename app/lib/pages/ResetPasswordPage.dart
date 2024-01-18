@@ -1,21 +1,18 @@
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:app/network.dart';
-import 'package:dio/browser.dart';
+import 'package:app/util/network.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sizer/sizer.dart';
 import 'package:dio/dio.dart';
-import 'settings.dart' as settings;
+import '../util/settings.dart' as settings;
 
-
-import 'notification.dart';
+import '../util/notification.dart';
 
 class ResetPasswordPage extends StatefulWidget {
   ///  Base class for creating a password allowing user to reset the password after clicking link in an email
-    final String token;
-
+  final String token;
 
   const ResetPasswordPage(this.token, {Key? key}) : super(key: key);
 
@@ -42,11 +39,10 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
     super.initState();
   }
 
-
   @override
   Widget build(BuildContext context) {
-    ///    Builds widget for resetting the password
-        return Center(
+    ///    Builds widget for password reset screen
+    return Center(
         child: Scrollbar(
             child: SizedBox(
                 width: max(min(40.h, 300), 600),
@@ -122,10 +118,12 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                           return null;
                         },
                         decoration: InputDecoration(
-                            border: OutlineInputBorder(),
-                            labelText: "Potwierdź hasło",
-                            icon: SizedBox(width: 24,),
-                            ),
+                          border: OutlineInputBorder(),
+                          labelText: "Potwierdź hasło",
+                          icon: SizedBox(
+                            width: 24,
+                          ),
+                        ),
                       ),
                     ),
                     SizedBox(

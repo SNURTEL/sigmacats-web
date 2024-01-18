@@ -2,11 +2,10 @@ import 'package:intl/intl.dart';
 
 import 'RaceListRead.dart';
 
-///This file defines models for reading race details and race participation
+///This file defines response schema models for reading race details and race participation
 
 enum RaceTemperature {
   ///  Holds different possible race temperatures
-
   normal("normal"),
   hot("hot"),
   cold("cold");
@@ -18,7 +17,6 @@ enum RaceTemperature {
 
 enum RaceWind {
   ///  Holds different possible wind states
-
   zero("zero"),
   light("light"),
   heavy("heavy");
@@ -30,7 +28,6 @@ enum RaceWind {
 
 enum RaceRain {
   ///  Holds different possible rain intensities during a race
-
   zero("zero"),
   light("light"),
   heavy("heavy");
@@ -42,7 +39,6 @@ enum RaceRain {
 
 enum RaceParticipationStatus {
   ///  Holds different possible statuses of race participation
-
   pending("pending"),
   approved("approved"),
   rejected("rejected");
@@ -53,7 +49,7 @@ enum RaceParticipationStatus {
 }
 
 class RaceDetailRead {
-  ///  Defines a class for reading race details
+  ///  Response schema for race detail read
 
   final int id;
   final RaceStatus status;
@@ -148,8 +144,6 @@ class RaceDetailRead {
 
   @override
   String toString() {
-    ///    Converts race details into string
-
     return 'RaceDetailRead{' +
         ' id: $id,' +
         ' status: $status,' +
@@ -194,8 +188,6 @@ class RaceDetailRead {
     String? sponsor_banners_uuids_json,
     bool? is_approved,
   }) {
-    ///    Copies details from one race to the other
-
     return RaceDetailRead(
       id: id ?? this.id,
       status: status ?? this.status,
@@ -220,8 +212,6 @@ class RaceDetailRead {
   }
 
   Map<String, dynamic> toMap() {
-    ///    Converts race details to map form
-
     return {
       'id': this.id,
       'status': this.status,
@@ -246,8 +236,6 @@ class RaceDetailRead {
   }
 
   factory RaceDetailRead.fromMap(Map<String, dynamic> map) {
-    ///    Reads race details from map
-
     return RaceDetailRead(
       id: map['id'] as int,
       status: RaceStatus.values.byName(map['status']),
@@ -255,7 +243,8 @@ class RaceDetailRead {
       description: map['description'] as String,
       requirements: map['requirements'] as String?,
       no_laps: map['no_laps'] as int,
-      meetup_timestamp: map['meetup_timestamp'] != null ? DateFormat("yyyy-MM-ddTHH:mm:ss").parse(map['meetup_timestamp'], true).toLocal() : null,
+      meetup_timestamp:
+          map['meetup_timestamp'] != null ? DateFormat("yyyy-MM-ddTHH:mm:ss").parse(map['meetup_timestamp'], true).toLocal() : null,
       start_timestamp: DateFormat("yyyy-MM-ddTHH:mm:ss").parse(map['start_timestamp'], true).toLocal(),
       end_timestamp: DateFormat("yyyy-MM-ddTHH:mm:ss").parse(map['end_timestamp'], true).toLocal(),
       event_graphic_file: map['event_graphic_file'] as String,
@@ -276,7 +265,7 @@ class RaceDetailRead {
 }
 
 class RaceParticipationRead {
-  ///  Defines a class for reading race participations
+  ///  Response schema for reading race participations
 
   final int id;
   final int race_id;
@@ -338,8 +327,6 @@ class RaceParticipationRead {
 
   @override
   String toString() {
-    ///    Converts race participation into string
-
     return 'RaceParticipationRead{' +
         ' id: $id,' +
         ' race_id: $race_id,' +
@@ -368,8 +355,6 @@ class RaceParticipationRead {
     String? rider_username,
     int? time_seconds,
   }) {
-    ///    Copies race participation
-
     return RaceParticipationRead(
       id: id ?? this.id,
       race_id: race_id ?? this.race_id,
@@ -386,8 +371,6 @@ class RaceParticipationRead {
   }
 
   Map<String, dynamic> toMap() {
-    ///    Converts race participation to map form
-    
     return {
       'id': this.id,
       'race_id': this.race_id,
@@ -404,8 +387,6 @@ class RaceParticipationRead {
   }
 
   factory RaceParticipationRead.fromMap(Map<String, dynamic> map) {
-    ///    Reads race participation from map
-
     return RaceParticipationRead(
         id: map['id'] as int,
         race_id: map['race_id'] as int,

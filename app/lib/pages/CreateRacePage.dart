@@ -1,7 +1,8 @@
 import 'dart:convert';
-import 'dart:html';
-import 'dart:math';
-import 'package:app/notification.dart';
+import 'dart:math' as math;
+import 'package:app/util/dates.dart';
+import 'package:app/util/extensions.dart';
+import 'package:app/util/notification.dart';
 import 'package:dio/dio.dart';
 import 'package:file_picker/_internal/file_picker_web.dart';
 import 'package:file_picker/file_picker.dart';
@@ -14,33 +15,23 @@ import 'package:latlong2/latlong.dart';
 import 'package:sizer/sizer.dart';
 import 'package:flutter_map_cancellable_tile_provider/flutter_map_cancellable_tile_provider.dart';
 import 'package:gpx/gpx.dart';
+import 'dart:developer';
 
-import 'components/NumberPicker.dart';
-import 'network.dart';
-import 'settings.dart' as settings;
-
-import 'models/RaceListRead.dart';
+import '../components/NumberPicker.dart';
+import '../util/network.dart';
+import '../util/settings.dart' as settings;
 
 class CreateRacePage extends StatefulWidget {
   ///  Base class for making a widget for creating a new race event
-    const CreateRacePage({Key? key}) : super(key: key);
+  const CreateRacePage({Key? key}) : super(key: key);
 
   @override
   _CreateRacePageState createState() => _CreateRacePageState();
 }
 
-DateTime clipDay(DateTime d) {
-  ///  Clips day from a given date
-    if (!DateUtils.isSameDay(d, DateTime.now())) {
-    return DateTime.now().copyWith(hour: 23, minute: 59, second: 59, millisecond: 0, microsecond: 0);
-  } else {
-    return d;
-  }
-}
-
 class _CreateRacePageState extends State<CreateRacePage> {
-  ///  Class for race creation widget
-    final nameEditingController = TextEditingController();
+  ///  Class for race creation page widget
+  final nameEditingController = TextEditingController();
   final descriptionEditingController = TextEditingController();
   final requirementsEditingController = TextEditingController();
   final entryFeeEditingController = TextEditingController();
@@ -92,18 +83,16 @@ class _CreateRacePageState extends State<CreateRacePage> {
   TileLayer get openStreetMapTileLayer => TileLayer(
         urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
         userAgentPackageName: 'dev.fleaflet.flutter_map.example',
-        // Use the recommended flutter_map_cancellable_tile_provider package to
-        // support the cancellation of loading tiles.
         tileProvider: CancellableNetworkTileProvider(),
       );
 
   @override
   Widget build(BuildContext context) {
-    ///    Build a race creation widget
-        return SingleChildScrollView(
+    ///    Build a race creation page widget
+    return SingleChildScrollView(
       child: Center(
           child: SizedBox(
-        width: max(min(40.h, 300), 600),
+        width: math.max(math.min(40.h, 300), 600),
         child: Column(
           children: [
             SizedBox(height: 48.0),
@@ -120,7 +109,9 @@ class _CreateRacePageState extends State<CreateRacePage> {
             )),
             SizedBox(height: 24.0),
             Text(
-              "Zaplanuj swoje własne wyścigi i stwórz niezapomniane trasy przy użyciu naszej intuicyjnej platformy do organizacji wyścigów! Z łatwością wprowadzaj informacje, ustawiaj parametry trasy i personalizuj wydarzenie, aby spełnić oczekiwania zarówno doświadczonych kolarzy, jak i pasjonatów.",
+              "Zaplanuj swoje własne wyścigi i stwórz niezapomniane trasy przy użyciu naszej intuicyjnej platformy do "
+              "organizacji wyścigów! Z łatwością wprowadzaj informacje, ustawiaj parametry trasy i personalizuj "
+              "wydarzenie, aby spełnić oczekiwania zarówno doświadczonych kolarzy, jak i pasjonatów.",
               style: Theme.of(context).textTheme.bodyLarge,
             ),
             SizedBox(height: 64.0),
@@ -128,6 +119,9 @@ class _CreateRacePageState extends State<CreateRacePage> {
               key: _formKey,
               child: Column(
                 children: [
+                  ///
+                  /// Race title
+                  ///
                   TextFormField(
                       controller: nameEditingController,
                       style: Theme.of(context).textTheme.displaySmall,
@@ -141,6 +135,10 @@ class _CreateRacePageState extends State<CreateRacePage> {
                   SizedBox(
                     height: 64,
                   ),
+
+                  ///
+                  /// Race event graphic
+                  ///
                   Card(
                     child: Column(
                       children: [
@@ -153,51 +151,52 @@ class _CreateRacePageState extends State<CreateRacePage> {
                           },
                           builder: (state) {
                             return InkWell(
-                              onTap: isEventGraphicUploading ? null : () async {
-                                FilePickerResult? picked = await FilePickerWeb.platform.pickFiles(
-                                  type: FileType.custom,
-                                  allowedExtensions: ['jpg', 'jpeg', 'png'],
-                                );
+                              onTap: isEventGraphicUploading
+                                  ? null
+                                  : () async {
+                                      FilePickerResult? picked = await FilePickerWeb.platform.pickFiles(
+                                        type: FileType.custom,
+                                        allowedExtensions: ['jpg', 'jpeg', 'png'],
+                                      );
 
-                                if (picked == null) {
-                                  print("No file picked");
-                                  return;
-                                }
+                                      if (picked == null) {
+                                        log("No file picked");
+                                        return;
+                                      }
 
-                                print(picked.files.first.name);
-                                var bytes = picked.files.single.bytes!;
+                                      log(picked.files.first.name);
+                                      var bytes = picked.files.single.bytes!;
 
-                                FormData formData = FormData.fromMap({
-                                  "fileobj": MultipartFile.fromBytes(bytes, filename: picked.files.first.name),
-                                  "name": picked.files.first.name
-                                });
-                                try {
-                                  setState(() {
-                                    isEventGraphicUploading = true;
-                                  });
-                                  var response =
-                                      await dio.post("${settings.uploadBaseUrl}/api/coordinator/race/create/upload-graphic/", data: formData);
+                                      FormData formData = FormData.fromMap({
+                                        "fileobj": MultipartFile.fromBytes(bytes, filename: picked.files.first.name),
+                                        "name": picked.files.first.name
+                                      });
+                                      try {
+                                        setState(() {
+                                          isEventGraphicUploading = true;
+                                        });
+                                        var response = await dio
+                                            .post("${settings.uploadBaseUrl}/api/coordinator/race/create/upload-graphic/", data: formData);
 
-                                  print(response.data);
-                                  var uploadedFileMeta = response.data;
-                                  setState(() {
-                                    isEventGraphicUploading = false;
-                                    eventGraphicBytes = bytes;
-                                    print("PATH IS ${uploadedFileMeta['fileobj.path']}");
-                                    eventGraphicFilePath = uploadedFileMeta['fileobj.path'];
-                                    state.setValue(uploadedFileMeta['fileobj.path']);
-                                    eventGraphicErrorMessage = null;
-                                  });
-                                } on DioException catch (e) {
-                                  print(e.response?.statusCode);
-                                  print(e.response?.data);
-                                  showNotification(context, "Błąd podczas przesyłania pliku.");
-                                  setState(() {
-                                    isEventGraphicUploading = false;
-                                  });
-                                  return;
-                                }
-                              },
+                                        log(response.data);
+                                        var uploadedFileMeta = response.data;
+                                        setState(() {
+                                          isEventGraphicUploading = false;
+                                          eventGraphicBytes = bytes;
+                                          log("PATH IS ${uploadedFileMeta['fileobj.path']}");
+                                          eventGraphicFilePath = uploadedFileMeta['fileobj.path'];
+                                          state.setValue(uploadedFileMeta['fileobj.path']);
+                                          eventGraphicErrorMessage = null;
+                                        });
+                                      } on DioException catch (e) {
+                                        log("File upload error: ", error: e);
+                                        showNotification(context, "Błąd podczas przesyłania pliku.");
+                                        setState(() {
+                                          isEventGraphicUploading = false;
+                                        });
+                                        return;
+                                      }
+                                    },
                               child: ClipRRect(
                                 borderRadius: BorderRadius.only(
                                   topLeft: Radius.circular(16.0),
@@ -211,16 +210,18 @@ class _CreateRacePageState extends State<CreateRacePage> {
                                     width: double.infinity,
                                     child: ColoredBox(
                                       color: Theme.of(context).colorScheme.primaryContainer,
-                                      child: isEventGraphicUploading ? Center(child: CircularProgressIndicator()) : Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Icon(Icons.add_photo_alternate_outlined),
-                                          SizedBox(
-                                            width: 8,
-                                          ),
-                                          Text("Dodaj grafikę wydarzenia")
-                                        ],
-                                      ),
+                                      child: isEventGraphicUploading
+                                          ? Center(child: CircularProgressIndicator())
+                                          : Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                Icon(Icons.add_photo_alternate_outlined),
+                                                SizedBox(
+                                                  width: 8,
+                                                ),
+                                                Text("Dodaj grafikę wydarzenia")
+                                              ],
+                                            ),
                                     ),
                                   ),
                                 ),
@@ -336,6 +337,10 @@ class _CreateRacePageState extends State<CreateRacePage> {
                     ),
                   ),
                   SizedBox(height: 24.0),
+
+                  ///
+                  /// Race GPX track file
+                  ///
                   Align(
                     alignment: Alignment.topLeft,
                     child: Text(
@@ -405,73 +410,83 @@ class _CreateRacePageState extends State<CreateRacePage> {
                                   },
                                   builder: (FormFieldState state) {
                                     return FilledButton(
-                                      onPressed: isRouteUploading ? null : () async {
-                                        FilePickerResult? picked = await FilePickerWeb.platform.pickFiles(
-                                          type: FileType.custom,
-                                          allowedExtensions: ['gpx'],
-                                        );
+                                      onPressed: isRouteUploading
+                                          ? null
+                                          : () async {
+                                              FilePickerResult? picked = await FilePickerWeb.platform.pickFiles(
+                                                type: FileType.custom,
+                                                allowedExtensions: ['gpx'],
+                                              );
 
-                                        if (picked == null) {
-                                          print("No file picked");
-                                          return;
-                                        }
+                                              if (picked == null) {
+                                                log("No file picked");
+                                                return;
+                                              }
 
-                                        print(picked.files.first.name);
-                                        var bytes = picked.files.single.bytes!;
+                                              log(picked.files.first.name);
+                                              var bytes = picked.files.single.bytes!;
 
-                                        FormData formData = FormData.fromMap({
-                                          "fileobj": MultipartFile.fromBytes(bytes, filename: picked.files.first.name),
-                                          "name": picked.files.first.name
-                                        });
-                                        try {
-                                          setState(() {
-                                            isRouteUploading = true;
-                                          });
+                                              FormData formData = FormData.fromMap({
+                                                "fileobj": MultipartFile.fromBytes(bytes, filename: picked.files.first.name),
+                                                "name": picked.files.first.name
+                                              });
+                                              try {
+                                                setState(() {
+                                                  isRouteUploading = true;
+                                                });
 
-                                          print("${settings.uploadBaseUrl}/api/coordinator/race/create/upload-route/");
-                                          var response = await dio.post("${settings.uploadBaseUrl}/api/coordinator/race/create/upload-route/",
-                                              data: formData);
-                                          final Map<String, dynamic> uploadedFileMeta = response.data;
-                                          print(response.data);
+                                                log("${settings.uploadBaseUrl}/api/coordinator/race/create/upload-route/");
+                                                var response = await dio.post(
+                                                    "${settings.uploadBaseUrl}/api/coordinator/race/create/upload-route/",
+                                                    data: formData);
+                                                final Map<String, dynamic> uploadedFileMeta = response.data;
+                                                log(response.data);
 
-                                          setState(() {
-                                            isRouteUploading = false;
-                                            uploadedGpxFilePath = uploadedFileMeta['fileobj.path'];
-                                            print("PATH IS ${uploadedGpxFilePath}");
-                                            uploadedGpxObject = GpxReader().fromString(utf8.decode(bytes));
-                                            points = uploadedGpxObject!.trks.first.trksegs.first.trkpts;
-                                            print("GPX has ${points.length} trackpoints");
+                                                setState(() {
+                                                  isRouteUploading = false;
+                                                  uploadedGpxFilePath = uploadedFileMeta['fileobj.path'];
+                                                  log("PATH IS ${uploadedGpxFilePath}");
+                                                  uploadedGpxObject = GpxReader().fromString(utf8.decode(bytes));
+                                                  points = uploadedGpxObject!.trks.first.trksegs.first.trkpts;
+                                                  log("GPX has ${points.length} trackpoints");
 
-                                            fitMap();
-                                            state.setValue(uploadedGpxFilePath);
-                                            gpxErrorMessage = null;
-                                          });
-                                        } on DioException catch (e) {
-                                          print(e.response?.statusCode);
-                                          print(e.response?.data);
-                                          showNotification(context, "Niepoprawny plik lub błąd przesyłania.");
-                                          setState(() {
-                                            isRouteUploading = false;
-                                          });
-                                          return;
-                                        }
-                                      },
-                                      child: isRouteUploading ? CircularProgressIndicator() : Row(
-                                        children: [
-                                          Icon(Icons.add),
-                                          SizedBox(
-                                            width: 4,
-                                          ),
-                                          Text('Prześlij plik GPX')
-                                        ],
-                                      ),
+                                                  fitMap();
+                                                  state.setValue(uploadedGpxFilePath);
+                                                  gpxErrorMessage = null;
+                                                });
+                                              } on DioException catch (e) {
+                                                log("File upload error: ", error: e);
+                                                showNotification(context, "Błąd podczas przesyłania pliku.");
+                                                setState(() {
+                                                  isRouteUploading = false;
+                                                });
+                                                return;
+                                              }
+                                            },
+                                      child: isRouteUploading
+                                          ? CircularProgressIndicator()
+                                          : Row(
+                                              children: [
+                                                Icon(Icons.add),
+                                                SizedBox(
+                                                  width: 4,
+                                                ),
+                                                Text('Prześlij plik GPX')
+                                              ],
+                                            ),
                                     );
                                   },
                                 ),
                                 SizedBox(
                                   width: 16,
                                 ),
-                                Text("Trasa powinna być pętlą.", style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Theme.of(context).textTheme.labelLarge?.color?.withOpacity(0.5)),)
+                                Text(
+                                  "Trasa powinna być pętlą.",
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .labelLarge
+                                      ?.copyWith(color: Theme.of(context).textTheme.labelLarge?.color?.withOpacity(0.5)),
+                                )
                               ],
                             ),
                             Visibility(
@@ -489,6 +504,10 @@ class _CreateRacePageState extends State<CreateRacePage> {
                     ),
                   ),
                   SizedBox(height: 8.0),
+
+                  ///
+                  /// Number of laps
+                  ///
                   Card(
                     child: Padding(
                       padding: EdgeInsets.all(16.0),
@@ -514,6 +533,10 @@ class _CreateRacePageState extends State<CreateRacePage> {
                     ),
                   ),
                   SizedBox(height: 24.0),
+
+                  ///
+                  /// Date and time
+                  ///
                   Align(
                     alignment: Alignment.topLeft,
                     child: Text(
@@ -710,6 +733,10 @@ class _CreateRacePageState extends State<CreateRacePage> {
                     ),
                   ),
                   SizedBox(height: 24.0),
+
+                  ///
+                  /// Scoring
+                  ///
                   Align(
                     alignment: Alignment.topLeft,
                     child: Text(
@@ -786,7 +813,7 @@ class _CreateRacePageState extends State<CreateRacePage> {
                                     return v != null &&
                                             placeToPointsMapping.length > 1 &&
                                             v.isNotEmpty &&
-                                            parsed >= placeToPointsMapping.values.where((e) => e != parsed).reduce(min)
+                                            parsed >= placeToPointsMapping.values.where((e) => e != parsed).reduce(math.min)
                                         ? "Błąd."
                                         : null;
                                   },
@@ -858,6 +885,10 @@ class _CreateRacePageState extends State<CreateRacePage> {
                     ),
                   ),
                   SizedBox(height: 24.0),
+
+                  ///
+                  /// Sponsors
+                  ///
                   Align(
                     alignment: Alignment.topLeft,
                     child: Text(
@@ -869,7 +900,6 @@ class _CreateRacePageState extends State<CreateRacePage> {
                   ListView.builder(
                     shrinkWrap: true,
                     itemCount: sponsorBanners.length,
-
                     itemBuilder: (context, index) {
                       var key = sponsorBanners.keys.toList()[index];
                       return IntrinsicHeight(
@@ -883,11 +913,11 @@ class _CreateRacePageState extends State<CreateRacePage> {
                                 child: FittedBox(
                                     fit: BoxFit.cover,
                                     child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(16),
+                                        borderRadius: BorderRadius.circular(16),
                                         child: Image.memory(
-                                      sponsorBanners[key]!,
-                                      fit: BoxFit.fill,
-                                    ))),
+                                          sponsorBanners[key]!,
+                                          fit: BoxFit.fill,
+                                        ))),
                               ),
                               IconButton(
                                   onPressed: () {
@@ -904,54 +934,57 @@ class _CreateRacePageState extends State<CreateRacePage> {
                   ),
                   Card(
                     child: InkWell(
-                      onTap: isSponsorBannerUploading ? null : () async {
-                        FilePickerResult? picked = await FilePickerWeb.platform.pickFiles(
-                          type: FileType.custom,
-                          allowedExtensions: ['jpg', 'jpeg', 'png'],
-                        );
+                      onTap: isSponsorBannerUploading
+                          ? null
+                          : () async {
+                              FilePickerResult? picked = await FilePickerWeb.platform.pickFiles(
+                                type: FileType.custom,
+                                allowedExtensions: ['jpg', 'jpeg', 'png'],
+                              );
 
-                        if (picked == null) {
-                          print("No file picked");
-                          return;
-                        }
+                              if (picked == null) {
+                                log("No file picked");
+                                return;
+                              }
 
-                        print(picked.files.first.name);
-                        var bytes = picked.files.single.bytes!;
+                              log(picked.files.first.name);
+                              var bytes = picked.files.single.bytes!;
 
-                        FormData formData = FormData.fromMap({
-                          "fileobj": MultipartFile.fromBytes(bytes, filename: picked.files.first.name),
-                          "name": picked.files.first.name
-                        });
-                        try {
-                          setState(() {
-                            isSponsorBannerUploading = true;
-                          });
+                              FormData formData = FormData.fromMap({
+                                "fileobj": MultipartFile.fromBytes(bytes, filename: picked.files.first.name),
+                                "name": picked.files.first.name
+                              });
+                              try {
+                                setState(() {
+                                  isSponsorBannerUploading = true;
+                                });
 
-                          var response =
-                              await dio.post("${settings.uploadBaseUrl}/api/coordinator/race/create/upload-graphic/", data: formData);
-                          print(response.data);
-                          var uploadedFileMeta = response.data;
-                          var path = uploadedFileMeta['fileobj.path'];
-                          setState(() {
-                            isSponsorBannerUploading = false;
-                            sponsorBanners[path] = bytes;
-                          });
-                        } on DioException catch (e) {
-                          print(e.response?.statusCode);
-                          print(e.response?.data);
-                          showNotification(context, "Błąd podczas przesyłania pliku.");
+                                var response =
+                                    await dio.post("${settings.uploadBaseUrl}/api/coordinator/race/create/upload-graphic/", data: formData);
+                                log(response.data);
+                                var uploadedFileMeta = response.data;
+                                var path = uploadedFileMeta['fileobj.path'];
+                                setState(() {
+                                  isSponsorBannerUploading = false;
+                                  sponsorBanners[path] = bytes;
+                                });
+                              } on DioException catch (e) {
+                                log("File upload error: ", error: e);
+                                showNotification(context, "Błąd podczas przesyłania pliku.");
 
-                          setState(() {
-                            isSponsorBannerUploading = false;
-                          });
-                          return;
-                        }
-                      },
+                                setState(() {
+                                  isSponsorBannerUploading = false;
+                                });
+                                return;
+                              }
+                            },
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
-                        child: isSponsorBannerUploading ? CircularProgressIndicator() : Row(
-                          children: [Spacer(), Icon(Icons.add_circle_outline), SizedBox(width: 8), Text("Dodaj baner"), Spacer()],
-                        ),
+                        child: isSponsorBannerUploading
+                            ? CircularProgressIndicator()
+                            : Row(
+                                children: [Spacer(), Icon(Icons.add_circle_outline), SizedBox(width: 8), Text("Dodaj baner"), Spacer()],
+                              ),
                       ),
                     ),
                   )
@@ -961,6 +994,10 @@ class _CreateRacePageState extends State<CreateRacePage> {
             SizedBox(
               height: 48,
             ),
+
+            ///
+            /// "Create race" button
+            ///
             SizedBox(
                 width: double.infinity,
                 height: 50,
@@ -998,8 +1035,6 @@ class _CreateRacePageState extends State<CreateRacePage> {
                             };
                             try {
                               var response = await dio.post('${settings.apiBaseUrl}/api/coordinator/race/create', data: requestData);
-                              print(response.statusCode);
-                              print(response.data);
                               showNotification(context, 'Utworzono wyścig ${nameEditingController.text}!');
                               setState(() {
                                 successfullyCreated = true;
@@ -1007,10 +1042,7 @@ class _CreateRacePageState extends State<CreateRacePage> {
                               await Future.delayed(Duration(seconds: 4));
                               context.go('/');
                             } on DioException catch (e) {
-                              print(e.response?.statusCode);
-                              print(e.response?.data);
-                              print(e.error);
-                              print(e.message);
+                              log("Race creation error: ", error: e);
                               setState(() {
                                 isLoading = false;
                               });
@@ -1050,8 +1082,8 @@ class _CreateRacePageState extends State<CreateRacePage> {
   }
 
   void fitMap() {
-    ///    Fits map to the screen of the user
-        mapController.fitCamera(
+    ///    Fits the entire track in the window
+    mapController.fitCamera(
       CameraFit.bounds(
           bounds: LatLngBounds.fromPoints(points.where((e) => e.lat != null && e.lon != null).map((e) => LatLng(e.lat!, e.lon!)).toList()),
           padding: EdgeInsets.all(32)),
@@ -1059,8 +1091,8 @@ class _CreateRacePageState extends State<CreateRacePage> {
   }
 
   Future<TimeOfDay?> _selectTime(BuildContext context, {String? hintText, TimeOfDay? initialTime}) async {
-    ///    Allows for selection of a time to begin or end the race
-        TimeOfDay selectedTime = initialTime ?? TimeOfDay.now();
+    ///    Select time with dialog
+    TimeOfDay selectedTime = initialTime ?? TimeOfDay.now();
     final TimeOfDay? picked_s = await showTimePicker(
         context: context,
         initialTime: selectedTime,
@@ -1077,8 +1109,8 @@ class _CreateRacePageState extends State<CreateRacePage> {
   }
 
   Future<DateTime?> _selectDate(BuildContext context, {DateTime? initialDate}) async {
-    ///    Allows for selection of a date to begin or end the race
-        DateTime selectedDate = initialDate ?? DateTime.now();
+    ///    Select date with dialog
+    DateTime selectedDate = initialDate ?? DateTime.now();
     final DateTime? picked_s = await showDatePicker(
         firstDate: DateTime.now(),
         lastDate: DateTime.now().add(Duration(days: 365)),
@@ -1093,11 +1125,5 @@ class _CreateRacePageState extends State<CreateRacePage> {
           );
         });
     return picked_s;
-  }
-}
-
-extension StringExtensions on String {
-  String capitalize() {
-    return "${this[0].toUpperCase()}${substring(1)}";
   }
 }

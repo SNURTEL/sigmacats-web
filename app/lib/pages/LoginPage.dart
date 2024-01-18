@@ -1,26 +1,27 @@
-import 'dart:math';
+import 'dart:math' as math;
 
-import 'package:app/network.dart';
-import 'package:dio/browser.dart';
+import 'package:app/util/network.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sizer/sizer.dart';
 import 'package:dio/dio.dart';
-import 'settings.dart' as settings;
+import 'dart:developer';
 
-import 'notification.dart';
+import '../util/settings.dart' as settings;
+
+import '../util/notification.dart';
 
 class LoginPage extends StatefulWidget {
-  ///  Base class used for creating a login page
-    const LoginPage({Key? key}) : super(key: key);
+  ///  Login page widget class
+  const LoginPage({Key? key}) : super(key: key);
 
   @override
   _LoginPageState createState() => _LoginPageState();
 }
 
 class _LoginPageState extends State<LoginPage> {
-  ///  This class defines widget for a login page
-    final _formKey = GlobalKey<FormState>();
+  ///  State of login page widget
+  final _formKey = GlobalKey<FormState>();
   final _usernameEditingController = TextEditingController();
   final _passwordEditingController = TextEditingController();
 
@@ -39,10 +40,10 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     ///    Build login widget
-        return Center(
+    return Center(
         child: Scrollbar(
             child: SizedBox(
-                width: max(min(40.h, 300), 600),
+                width: math.max(math.min(40.h, 300), 600),
                 child: Form(
                   key: _formKey,
                   child: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.center, children: [
@@ -146,10 +147,7 @@ class _LoginPageState extends State<LoginPage> {
 
                                     context.go('/');
                                   } on DioException catch (e) {
-                                    print(e.response?.statusCode);
-                                    print(e.response?.data);
-                                    print(e.error);
-                                    print(e.message);
+                                    log("Login error: ", error: e);
                                     setState(() {
                                       _isLoading = false;
                                     });

@@ -1,26 +1,22 @@
-import 'dart:convert';
 import 'dart:html' as html;
-import 'dart:io';
-import 'dart:math';
-import 'package:app/network.dart';
-import 'package:app/notification.dart';
-import 'package:dio/browser.dart';
+import 'dart:math' as math;
+import 'package:app/util/network.dart';
+import 'package:app/util/notification.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:http/browser_client.dart';
-import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:sizer/sizer.dart';
+import 'dart:developer';
 
-import 'settings.dart' as settings;
+import '../util/settings.dart' as settings;
 
-import 'models/RaceListRead.dart';
+import '../models/RaceListRead.dart';
 
 class HomePage extends StatefulWidget {
   ///  Base class for creating a Home Page widget
-    const HomePage({Key? key}) : super(key: key);
+  const HomePage({Key? key}) : super(key: key);
 
   @override
   _HomePageState createState() => _HomePageState();
@@ -28,7 +24,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   ///  Creates widget that displays a home page
-    late Future<List<RaceListRead>> futureRaces;
+  late Future<List<RaceListRead>> futureRaces;
 
   late Dio dio = getDio(context);
 
@@ -40,12 +36,12 @@ class _HomePageState extends State<HomePage> {
 
   Future<List<RaceListRead>> fetchRaceList() async {
     ///    Fetches races from the server
-        try {
+    try {
       final response = await dio.get('${settings.apiBaseUrl}/api/coordinator/race/');
       final List<dynamic> races = response.data;
       return races.map((race) => RaceListRead.fromMap(race)).toList();
     } on DioException catch (e) {
-      print(e);
+      log("Race fetch error: ", error: e);
       throw Exception('Failed to load races');
     }
   }
@@ -53,7 +49,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     ///    Builds the widget for displaying the home page
-        return FutureBuilder(
+    return FutureBuilder(
       future: futureRaces,
       builder: (context, snapshot) {
         late Widget content;
@@ -70,7 +66,7 @@ class _HomePageState extends State<HomePage> {
                         child: SizedBox(
                           height: 96,
                         )),
-                    SizedBox(width: max(min(40.h, 300), 600), child: RaceCard(snapshot.data![index], dio)),
+                    SizedBox(width: math.max(math.min(40.h, 300), 600), child: RaceCard(snapshot.data![index], dio)),
                     SizedBox(height: 8.0),
                     Visibility(
                         visible: index == snapshot.data!.length - 1,
@@ -83,8 +79,7 @@ class _HomePageState extends State<HomePage> {
             ),
           );
         } else if (snapshot.hasError) {
-          print(snapshot.error);
-          print(snapshot.stackTrace);
+          log("Race list fetch error: ", error: snapshot.error);
           content = Text('${snapshot.error}');
         } else {
           // By default, show a loading spinner.
@@ -99,7 +94,7 @@ class _HomePageState extends State<HomePage> {
 
 class RaceCard extends StatelessWidget {
   ///  Creates a widget for displaying a shortened race information for a given race on a home page
-    final RaceListRead race;
+  final RaceListRead race;
   final Dio dio;
 
   const RaceCard(this.race, this.dio, {super.key});
@@ -107,7 +102,7 @@ class RaceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     ///    Builds widget for displaying a shortened race information for a given race on a home page
-        if (race.status == RaceStatus.ended && race.is_approved == false) {
+    if (race.status == RaceStatus.ended && race.is_approved == false) {
       return FinishedCard(context);
     } else if (race.status == RaceStatus.ended) {
       return EndedCard(context);
@@ -119,8 +114,8 @@ class RaceCard extends StatelessWidget {
   }
 
   Widget PendingCard(BuildContext context) {
-    ///    Builds a widget for a pending race
-        return Card(
+    ///    Builds a card for a pending race
+    return Card(
       margin: const EdgeInsets.all(5.0),
       shadowColor: Colors.transparent,
       child: Column(
@@ -152,21 +147,20 @@ class RaceCard extends StatelessWidget {
   }
 
   Widget EndedCard(BuildContext context) {
-    ///    Builds a widget for an ended race
-        return Card(
+    ///    Builds a card for an ended race
+    return Card(
       margin: const EdgeInsets.all(5.0),
       child: ClipRect(
-        child: Opacity(
-            opacity: 0.62,
-            child: CardContent(context),
-        )
-      ),
+          child: Opacity(
+        opacity: 0.62,
+        child: CardContent(context),
+      )),
     );
   }
 
   Widget InProgressCard(BuildContext context) {
-    ///    Builds a widget for a race that is in progress
-        return Card(
+    ///    Builds a card for a race that is in progress
+    return Card(
       margin: const EdgeInsets.all(5.0),
       color: Colors.greenAccent.withOpacity(0.2),
       shadowColor: Colors.transparent,
@@ -198,8 +192,8 @@ class RaceCard extends StatelessWidget {
   }
 
   Widget FinishedCard(BuildContext context) {
-    ///    Builds a widget for a finished race
-        return Card(
+    ///    Builds a card for a finished race (requires score approved)
+    return Card(
       margin: const EdgeInsets.all(5.0),
       color: Colors.orangeAccent.withOpacity(0.2),
       shadowColor: Colors.transparent,
@@ -234,7 +228,7 @@ class RaceCard extends StatelessWidget {
 
   Widget CardContent(BuildContext context) {
     ///    Builds a widget for displaying a content of a race card
-        return Column(children: [
+    return Column(children: [
       Container(
         // Fixed height
         width: double.infinity,
@@ -265,7 +259,7 @@ class RaceCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     ConstrainedBox(
-                      constraints: BoxConstraints(maxWidth: max(min(40.h, 300), 600) - 144),
+                      constraints: BoxConstraints(maxWidth: math.max(math.min(40.h, 300), 600) - 144),
                       child: Text(
                         race.name,
                         softWrap: true,
@@ -296,9 +290,8 @@ class RaceCard extends StatelessWidget {
                       final gpxPath = detailResponse.data['checkpoints_gpx_file'];
                       html.window.open("${settings.apiBaseUrl}${gpxPath}", "dfsdf");
                     } on DioException catch (e) {
-                      print(e);
-
-                      showNotification(context, "Błąd");
+                      log("Gpx fetch error: ", error: e);
+                      showNotification(context, "Błąd podczas pobierania pliku.");
                     }
                   },
                   child: Padding(

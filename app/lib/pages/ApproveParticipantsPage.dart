@@ -1,20 +1,19 @@
-import 'dart:js_util';
-import 'dart:math';
+import 'dart:math' as math;
 
 import 'package:app/models/RaceDetailRead.dart';
 import 'package:app/models/RaceListRead.dart';
-import 'package:app/notification.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sizer/sizer.dart';
+import 'dart:developer';
 
-import 'network.dart';
-import 'settings.dart' as settings;
+import '../util/network.dart';
+import '../util/settings.dart' as settings;
 
 class ApproveParticipantsPage extends StatefulWidget {
   ///  This class is used to create the basis of a page for approving participants
-    final int id;
+  final int id;
 
   const ApproveParticipantsPage(this.id, {Key? key}) : super(key: key);
 
@@ -24,7 +23,7 @@ class ApproveParticipantsPage extends StatefulWidget {
 
 class _ApproveParticipantsPageState extends State<ApproveParticipantsPage> {
   ///  This class defines states of a page for approving participants
-    late Future<RaceDetailRead> futureRace;
+  late Future<RaceDetailRead> futureRace;
   late List<RaceParticipationRead> participations;
 
   late Dio dio = getDio(context);
@@ -37,7 +36,7 @@ class _ApproveParticipantsPageState extends State<ApproveParticipantsPage> {
 
   Future<RaceDetailRead> fetchRace() async {
     ///    Fetches races from server
-        try {
+    try {
       final response = await dio.get('${settings.apiBaseUrl}/api/coordinator/race/${widget.id}');
       final race = RaceDetailRead.fromMap(response.data);
       participations = (race.race_participations?..sort((a, b) => (a.place_generated_overall ?? 0) - (b.place_generated_overall ?? 0)))
@@ -46,23 +45,26 @@ class _ApproveParticipantsPageState extends State<ApproveParticipantsPage> {
           [];
       return race;
     } on DioException catch (e) {
-      print(e);
+      log("Race fetch error: ", error: e);
       throw Exception('Failed to load races');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    ///    Builds the widget for approving participants
-        return FutureBuilder(
+    ///    Builds the widget for participant approval page
+    ///    Either the riders list or error screen
+    return FutureBuilder(
       future: futureRace,
       builder: (context, snapshot) {
         late Widget content;
         if (snapshot.hasData) {
+          // regular page
           final race = snapshot.data!;
           if (race.status == RaceStatus.pending) {
             content = Content(context, race);
           } else {
+            // error page - race status other than `pending`
             content = Expanded(
               child: Center(
                 child: Column(
@@ -83,8 +85,7 @@ class _ApproveParticipantsPageState extends State<ApproveParticipantsPage> {
             );
           }
         } else if (snapshot.hasError) {
-          print(snapshot.error);
-          print(snapshot.stackTrace);
+          log("Race fetch error: ", error: snapshot.error);
           content = Text('${snapshot.error}');
         } else {
           // By default, show a loading spinner.
@@ -98,10 +99,10 @@ class _ApproveParticipantsPageState extends State<ApproveParticipantsPage> {
 
   Widget Content(BuildContext context, RaceDetailRead race) {
     ///    Contains list of users to be accepted for a given race
-        return SingleChildScrollView(
+    return SingleChildScrollView(
         child: Center(
             child: SizedBox(
-                width: max(min(40.h, 300), 600),
+                width: math.max(math.min(40.h, 300), 600),
                 child: Column(children: [
                   SizedBox(
                     height: 128,
@@ -114,15 +115,14 @@ class _ApproveParticipantsPageState extends State<ApproveParticipantsPage> {
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                           Flexible(
-                                child: Text(
-                                  race.name + " - uczestnicy",
-                                  style: Theme.of(context).textTheme.displayMedium,
-                                  maxLines: 6,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
+                            Flexible(
+                              child: Text(
+                                race.name + " - uczestnicy",
+                                style: Theme.of(context).textTheme.displayMedium,
+                                maxLines: 6,
+                                overflow: TextOverflow.ellipsis,
                               ),
-
+                            ),
                           ],
                         ),
                       ],
@@ -142,11 +142,13 @@ class _ApproveParticipantsPageState extends State<ApproveParticipantsPage> {
                   SizedBox(
                     height: 32,
                   ),
+                  ///
+                  /// Actual rider list
+                  ///
                   ListView.builder(
                     shrinkWrap: true,
                     itemCount: participations.length,
                     itemBuilder: (context, index) {
-
                       late Widget buttons;
 
                       if (participations[index].status != RaceParticipationStatus.pending) {
@@ -160,8 +162,8 @@ class _ApproveParticipantsPageState extends State<ApproveParticipantsPage> {
                                   participations[index].status = RaceParticipationStatus.pending;
                                 });
                               } on DioException catch (e) {
-                                print(e);
-                                throw Exception('Failed to load races');
+                                log("Participations fetch error: ", error: e);
+                                throw Exception('Failed set participation status');
                               }
                             },
                             icon: Icon(Icons.restart_alt));
@@ -178,8 +180,8 @@ class _ApproveParticipantsPageState extends State<ApproveParticipantsPage> {
                                       participations[index].status = RaceParticipationStatus.approved;
                                     });
                                   } on DioException catch (e) {
-                                    print(e);
-                                    throw Exception('Failed to load races');
+                                    log("participation status set error: ", error: e);
+                                    throw Exception('Failed set participation status');
                                   }
                                 },
                                 icon: Icon(Icons.done)),
@@ -193,8 +195,8 @@ class _ApproveParticipantsPageState extends State<ApproveParticipantsPage> {
                                       participations[index].status = RaceParticipationStatus.rejected;
                                     });
                                   } on DioException catch (e) {
-                                    print(e);
-                                    throw Exception('Failed to load races');
+                                    log("participation status set error: ", error: e);
+                                    throw Exception('Failed set participation status');
                                   }
                                 },
                                 icon: Icon(Icons.close)),
@@ -257,13 +259,10 @@ class _ApproveParticipantsPageState extends State<ApproveParticipantsPage> {
                 ]))));
   }
 
+  /// Map participation statuses to tile colors
   final statusToColorMapping = {
     RaceParticipationStatus.pending: Colors.transparent,
     RaceParticipationStatus.approved: Colors.greenAccent.withOpacity(0.2),
     RaceParticipationStatus.rejected: Colors.redAccent.withOpacity(0.2),
   };
-}
-
-extension ObjectExt<T> on T {
-  R let<R>(R Function(T it) op) => op(this);
 }

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
-"""
-This file defines color schemes (light and dark) for the application
-"""
+///
+/// This file defines color schemes (light and dark) for the application
+/// Generated from Material 3 theme generator
+///
 
 const lightColorScheme = ColorScheme(
   brightness: Brightness.light,

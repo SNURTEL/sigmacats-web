@@ -1,20 +1,22 @@
 import 'dart:js_util';
-import 'dart:math';
+import 'dart:math' as math;
 
 import 'package:app/models/RaceDetailRead.dart';
 import 'package:app/models/RaceListRead.dart';
-import 'package:app/notification.dart';
+import 'package:app/util/extensions.dart';
+import 'package:app/util/notification.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sizer/sizer.dart';
+import 'dart:developer';
 
-import 'network.dart';
-import 'settings.dart' as settings;
+import '../util/network.dart';
+import '../util/settings.dart' as settings;
 
 class RaceResultsPage extends StatefulWidget {
   ///  Base class for a page with race results
-    final int id;
+  final int id;
 
   const RaceResultsPage(this.id, {Key? key}) : super(key: key);
 
@@ -24,7 +26,7 @@ class RaceResultsPage extends StatefulWidget {
 
 class _RaceResultsPageState extends State<RaceResultsPage> {
   ///  Creates a widget used for showing results of races
-    late Future<RaceDetailRead> futureRace;
+  late Future<RaceDetailRead> futureRace;
   late List<RaceParticipationRead> participations;
 
   late Dio dio = getDio(context);
@@ -52,8 +54,8 @@ class _RaceResultsPageState extends State<RaceResultsPage> {
   }
 
   Future<RaceDetailRead> fetchRace() async {
-    ///    Fetches races from server
-        try {
+    ///    Fetches race participations & details from server
+    try {
       final response = await dio.get('${settings.apiBaseUrl}/api/coordinator/race/${widget.id}');
       final race = RaceDetailRead.fromMap(response.data);
       participations = (race.race_participations?..sort((a, b) => (a.place_generated_overall ?? 0) - (b.place_generated_overall ?? 0)))
@@ -62,7 +64,7 @@ class _RaceResultsPageState extends State<RaceResultsPage> {
           [];
       return race;
     } on DioException catch (e) {
-      print(e);
+      log("Race fetch error: ", error: e);
       throw Exception('Failed to load races');
     }
   }
@@ -70,7 +72,8 @@ class _RaceResultsPageState extends State<RaceResultsPage> {
   @override
   Widget build(BuildContext context) {
     ///    Build widget for showing the result of races
-        return FutureBuilder(
+    ///    Either the draggable list or error screen (race does not require resuilt approval)
+    return FutureBuilder(
       future: futureRace,
       builder: (context, snapshot) {
         late Widget content;
@@ -99,8 +102,7 @@ class _RaceResultsPageState extends State<RaceResultsPage> {
             );
           }
         } else if (snapshot.hasError) {
-          print(snapshot.error);
-          print(snapshot.stackTrace);
+          log("Participations fetcch error: ", error: snapshot.error);
           content = Text('${snapshot.error}');
         } else {
           // By default, show a loading spinner.
@@ -114,15 +116,19 @@ class _RaceResultsPageState extends State<RaceResultsPage> {
 
   Widget Content(BuildContext context, RaceDetailRead race) {
     ///    Provides content for a widget displaying race results
-        return SingleChildScrollView(
+    return SingleChildScrollView(
         child: Center(
             child: SizedBox(
-                width: max(min(40.h, 300), 600),
+                width: math.max(math.min(40.h, 300), 600),
                 child: Column(
                   children: [
                     SizedBox(
                       height: 128,
                     ),
+
+                    ///
+                    /// Headline text
+                    ///
                     Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Row(
@@ -131,7 +137,7 @@ class _RaceResultsPageState extends State<RaceResultsPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               ConstrainedBox(
-                                constraints: BoxConstraints(maxWidth: max(min(40.h, 300), 600) - 32),
+                                constraints: BoxConstraints(maxWidth: math.max(math.min(40.h, 300), 600) - 32),
                                 child: Text(
                                   race.name + " - wyniki",
                                   style: Theme.of(context).textTheme.displayMedium,
@@ -151,7 +157,8 @@ class _RaceResultsPageState extends State<RaceResultsPage> {
                     Text(
                       "Uwaga - wyniki są generowane w oparciu o czas dotarcia na metę wyścigu. "
                       "Z uwagi na niedokładność lokalizacji za pomocą systemu GPS w telefonach mogą nie odzwierciedlać rzeczywistości.\n\n"
-                      "Przeciągnij pozycje na liście, aby zmodyfikować przypisanie miejsc. Dopuszczana jest klasyfikacja ex aequo, jeśli pierwotnie dwaj uczestnicy także byli sklasyfikowani ex aequo.",
+                      "Przeciągnij pozycje na liście, aby zmodyfikować przypisanie miejsc. Dopuszczana jest klasyfikacja ex aequo, jeśli "
+                      "pierwotnie dwaj uczestnicy także byli sklasyfikowani ex aequo.",
                       style: Theme.of(context)
                           .textTheme
                           .titleMedium
@@ -160,6 +167,10 @@ class _RaceResultsPageState extends State<RaceResultsPage> {
                     SizedBox(
                       height: 32,
                     ),
+
+                    ///
+                    /// Draggable list for adjusting places taken by riders
+                    ///
                     ReorderableListView(
                       shrinkWrap: true,
                       children: <Widget>[
@@ -280,6 +291,10 @@ class _RaceResultsPageState extends State<RaceResultsPage> {
                     SizedBox(
                       height: 32,
                     ),
+
+                    ///
+                    /// Bonuses for bad weather conditions
+                    ///
                     Row(
                       children: [
                         Text(
@@ -348,10 +363,7 @@ class _RaceResultsPageState extends State<RaceResultsPage> {
                       ];
 
                       if (MediaQuery.of(context).size.width > 550) {
-                        return Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: dropdowns
-                        );
+                        return Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: dropdowns);
                       } else {
                         return SizedBox(
                           height: 192,
@@ -388,7 +400,7 @@ class _RaceResultsPageState extends State<RaceResultsPage> {
                                     setState(() {
                                       confirmButtonEnabled = true;
                                     });
-                                    print(e);
+                                    log("Result confirmation error: ", error: e);
                                     showNotification(context, "Błąd podczas zatwierdzania wyników.");
                                   }
                                 }),
@@ -399,7 +411,7 @@ class _RaceResultsPageState extends State<RaceResultsPage> {
 
   Future<void> _confirmationDialogBuilder(BuildContext context, Future<void> Function() onConfirm) {
     ///    Builds dialog box for confirming the race results by coordinator
-        return showDialog<void>(
+    return showDialog<void>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
@@ -441,6 +453,3 @@ class _RaceResultsPageState extends State<RaceResultsPage> {
   }
 }
 
-extension ObjectExt<T> on T {
-  R let<R>(R Function(T it) op) => op(this);
-}
