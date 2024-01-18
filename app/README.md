@@ -1,16 +1,33 @@
-# app
+## Quickstart guide
 
-A new Flutter project.
+### Prerequisites
 
-## Getting Started
+- You will need Dart & Flutter to run the app. Check the installation guide [here](https://docs.flutter.dev/get-started/install.) Dart SDK should be installed along with Flutter SDK.
+- If you are using Android Studio, you may need to manually setup SDK paths. Find the Flutter SDK install path by `flutter doctor -v` and set it as **both** Dart and Flutter SDK path in IDE settings.
+- Before running the app, you will need to copy `.env.sample` to `.env`. You may want to configure backend URL and upload port in the envfile.
 
-This project is a starting point for a Flutter application.
+### Run the app using Chrome debug server
 
-A few resources to get you started if this is your first Flutter project:
+```shell
+flutter run -d chrome 
+```
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+You can use `--web-port=<PORT>` to specify debug server port.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+
+### Make a release build
+
+```shell
+flutter build web
+```
+
+build results will be written to `app/build/web`.
+
+### Run in container
+
+```shell
+docker build -t sigma-web .
+docker run sigma-web
+```
+
+Nginx will be used as a web server.
