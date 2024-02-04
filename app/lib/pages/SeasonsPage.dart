@@ -13,7 +13,6 @@ import '../util/network.dart';
 import '../util/settings.dart' as settings;
 
 class SeasonsPage extends StatefulWidget {
-  ///  Base class for creating season page widget
   const SeasonsPage({Key? key}) : super(key: key);
 
   @override
@@ -21,7 +20,6 @@ class SeasonsPage extends StatefulWidget {
 }
 
 class _SeasonsPageState extends State<SeasonsPage> {
-  ///  Creates widget for displaying and interacting with seasons
   late Future<List<SeasonRead>> futureSeasons;
 
   late Dio dio = getDio(context);
@@ -36,7 +34,6 @@ class _SeasonsPageState extends State<SeasonsPage> {
   }
 
   Future<List<SeasonRead>> fetchSeasons() async {
-    ///    Fetches league seasons from server
     try {
       final response = await dio.get('${settings.apiBaseUrl}/api/coordinator/season/');
       final List<dynamic> races = response.data;
@@ -49,7 +46,6 @@ class _SeasonsPageState extends State<SeasonsPage> {
 
   @override
   Widget build(BuildContext context) {
-    ///    Builds widget for displaying and interacting with seasons
     return FutureBuilder(
       future: futureSeasons,
       builder: (context, snapshot) {
@@ -70,7 +66,6 @@ class _SeasonsPageState extends State<SeasonsPage> {
   }
 
   Widget Content(BuildContext context, List<SeasonRead> seasons) {
-    ///    Creates content for a widget that displays information about seasons
     final seasonsSorted = seasons..sort(((a, b) => -a.startTimestamp.difference(b.startTimestamp).inSeconds));
     final currentSeasonId = seasonsSorted.firstOrNull?.id;
     return SingleChildScrollView(

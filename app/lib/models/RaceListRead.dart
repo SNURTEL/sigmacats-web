@@ -1,9 +1,7 @@
 import 'package:intl/intl.dart';
 
-///This file defines response schema model for reading a race
 
 enum RaceStatus {
-  ///  Holds different possible statuses of a race
   pending("pending"),
   in_progress("in_progress"),
   ended("ended"),
@@ -15,7 +13,6 @@ enum RaceStatus {
 }
 
 class RaceListRead {
-  ///  Schema model for reading a race
 
   final int id;
   final RaceStatus status;
@@ -29,7 +26,6 @@ class RaceListRead {
   final int season_id;
   final bool is_approved;
 
-//<editor-fold desc="Data Methods">
   const RaceListRead({
     required this.id,
     required this.status,
@@ -151,5 +147,4 @@ class RaceListRead {
     );
   }
 
-//</editor-fold>
 }

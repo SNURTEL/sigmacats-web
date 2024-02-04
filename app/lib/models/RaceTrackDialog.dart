@@ -6,7 +6,6 @@ import 'package:latlong2/latlong.dart';
 import 'package:sizer/sizer.dart';
 
 class TrackDialog extends StatefulWidget {
-  /// Dialog for displaying rider route compared to track
   final List<LatLng> rideTrackpoints;
   final List<LatLng> routeTrackpoints;
   final String title;
@@ -18,7 +17,6 @@ class TrackDialog extends StatefulWidget {
 }
 
 class _TrackDialogState extends State<TrackDialog> {
-  /// Dialog state
 
   final mapController = MapController();
 

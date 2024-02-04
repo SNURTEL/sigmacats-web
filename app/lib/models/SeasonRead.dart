@@ -1,15 +1,12 @@
 import 'package:intl/intl.dart';
 
-///  Response schema model for reading a season
 
 class SeasonRead {
-  ///  Season read schema model
   final int id;
   final String name;
   final DateTime startTimestamp;
   final DateTime? endTimestamp;
 
-//<editor-fold desc="Data Methods">
   const SeasonRead({
     required this.id,
     required this.name,
@@ -67,5 +64,4 @@ class SeasonRead {
     );
   }
 
-//</editor-fold>
 }

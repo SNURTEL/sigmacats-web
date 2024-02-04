@@ -2,10 +2,8 @@ import 'package:intl/intl.dart';
 
 import 'RaceListRead.dart';
 
-///This file defines response schema models for reading race details and race participation
 
 enum RaceTemperature {
-  ///  Holds different possible race temperatures
   normal("normal"),
   hot("hot"),
   cold("cold");
@@ -16,7 +14,6 @@ enum RaceTemperature {
 }
 
 enum RaceWind {
-  ///  Holds different possible wind states
   zero("zero"),
   light("light"),
   heavy("heavy");
@@ -27,7 +24,6 @@ enum RaceWind {
 }
 
 enum RaceRain {
-  ///  Holds different possible rain intensities during a race
   zero("zero"),
   light("light"),
   heavy("heavy");
@@ -38,7 +34,6 @@ enum RaceRain {
 }
 
 enum RaceParticipationStatus {
-  ///  Holds different possible statuses of race participation
   pending("pending"),
   approved("approved"),
   rejected("rejected");
@@ -49,7 +44,6 @@ enum RaceParticipationStatus {
 }
 
 class RaceDetailRead {
-  ///  Response schema for race detail read
 
   final int id;
   final RaceStatus status;
@@ -71,7 +65,6 @@ class RaceDetailRead {
   final String? sponsor_banners_uuids_json;
   final bool is_approved;
 
-//<editor-fold desc="Data Methods">
 
   const RaceDetailRead({
     required this.id,
@@ -261,11 +254,9 @@ class RaceDetailRead {
     );
   }
 
-//</editor-fold>
 }
 
 class RaceParticipationRead {
-  ///  Response schema for reading race participations
 
   final int id;
   final int race_id;
@@ -280,7 +271,6 @@ class RaceParticipationRead {
   final int? time_seconds;
   final String? ride_gpx_file;
 
-//<editor-fold desc="Data Methods">
   RaceParticipationRead({
     required this.id,
     required this.race_id,
@@ -410,5 +400,4 @@ class RaceParticipationRead {
         ride_gpx_file: map['ride_gpx_file'] as String?);
   }
 
-//</editor-fold>
 }

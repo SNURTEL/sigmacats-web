@@ -19,7 +19,6 @@ import 'package:app/theme/Color.dart';
 import 'util/settings.dart' as settings;
 
 void main() async {
-  ///  Runs the application
   await dotenv.load(fileName: "../.env");
   settings.apiBaseUrl = dotenv.env["FLUTTER_FASTAPI_HOST"] ?? "http://localhost:8000";
   settings.uploadBaseUrl =
@@ -31,7 +30,6 @@ void main() async {
 }
 
 class App extends StatefulWidget {
-  ///  App class used to build the application, includes states
   @override
   _AppState createState() => _AppState();
 }
@@ -39,7 +37,6 @@ class App extends StatefulWidget {
 class _AppState extends State<App> {
   _AppState() : super();
 
-  ///  Class used for setting the initial state of the application, including page navigation
 
   late final _router = GoRouter(
     routes: <RouteBase>[
@@ -101,7 +98,6 @@ class _AppState extends State<App> {
   );
 
   static CustomTransitionPage<void> tweenWarpper(BuildContext context, GoRouterState state, Widget childPage) {
-    ///    Adds tween effect to page transition
     return CustomTransitionPage<void>(
       key: state.pageKey,
       child: childPage,
@@ -117,7 +113,6 @@ class _AppState extends State<App> {
 
   @override
   Widget build(BuildContext context) {
-    ///    Builds the whole application
     return Sizer(
       builder: (context, orientation, deviceType) {
         return MaterialApp.router(

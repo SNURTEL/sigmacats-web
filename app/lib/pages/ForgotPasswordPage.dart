@@ -11,7 +11,6 @@ import '../util/settings.dart' as settings;
 import '../util/notification.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
-  ///  Base class for creating a page for resetting password
   const ForgotPasswordPage({Key? key}) : super(key: key);
 
   @override
@@ -19,7 +18,6 @@ class ForgotPasswordPage extends StatefulWidget {
 }
 
 class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
-  ///  Contains widget for resetting the password
 
   final _formKey = GlobalKey<FormState>();
   final _emailEditingController = TextEditingController();
@@ -38,7 +36,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
   @override
   Widget build(BuildContext context) {
-    ///    Create widget for password resetting page
     return Center(
         child: Scrollbar(
             child: SizedBox(
@@ -107,7 +104,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                     await dio.post('${settings.apiBaseUrl}/api/auth/forgot-password', data: jsonEncode(requestData));
                                     showSnackbarMessage(context, "Wysłano wiadomość! Sprawdź skrzynkę.");
                                   } on DioException catch (e) {
-                                    // backend always returns 202
                                     showSnackbarMessage(context, "Błąd podczas resetowania hasła.");
                                   }
                                   setState(() {

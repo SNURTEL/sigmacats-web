@@ -12,7 +12,6 @@ import '../util/settings.dart' as settings;
 import '../util/notification.dart';
 
 class LoginPage extends StatefulWidget {
-  ///  Login page widget class
   const LoginPage({Key? key}) : super(key: key);
 
   @override
@@ -20,7 +19,6 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  ///  State of login page widget
   final _formKey = GlobalKey<FormState>();
   final _usernameEditingController = TextEditingController();
   final _passwordEditingController = TextEditingController();
@@ -39,7 +37,6 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    ///    Build login widget
     return Center(
         child: Scrollbar(
             child: SizedBox(
