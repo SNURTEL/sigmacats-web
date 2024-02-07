@@ -18,7 +18,6 @@ import '../util/network.dart';
 import '../util/settings.dart' as settings;
 
 class RaceResultsPage extends StatefulWidget {
-  ///  Base class for a page with race results
   final int id;
 
   const RaceResultsPage(this.id, {Key? key}) : super(key: key);
@@ -28,7 +27,6 @@ class RaceResultsPage extends StatefulWidget {
 }
 
 class _RaceResultsPageState extends State<RaceResultsPage> {
-  ///  Creates a widget used for showing results of races
   late Future<RaceDetailRead> futureRace;
   late List<RaceParticipationRead> participations;
 
@@ -57,7 +55,6 @@ class _RaceResultsPageState extends State<RaceResultsPage> {
   }
 
   Future<RaceDetailRead> fetchRace() async {
-    ///    Fetches race participations & details from server
     try {
       final response = await dio.get('${settings.apiBaseUrl}/api/coordinator/race/${widget.id}');
       final race = RaceDetailRead.fromMap(response.data);
@@ -74,8 +71,6 @@ class _RaceResultsPageState extends State<RaceResultsPage> {
 
   @override
   Widget build(BuildContext context) {
-    ///    Build widget for showing the result of races
-    ///    Either the draggable list or error screen (race does not require resuilt approval)
     return FutureBuilder(
       future: futureRace,
       builder: (context, snapshot) {
@@ -108,7 +103,6 @@ class _RaceResultsPageState extends State<RaceResultsPage> {
           log("Participations fetcch error: ", error: snapshot.error);
           content = Text('${snapshot.error}');
         } else {
-          // By default, show a loading spinner.
           content = const CircularProgressIndicator();
         }
 
@@ -118,7 +112,6 @@ class _RaceResultsPageState extends State<RaceResultsPage> {
   }
 
   Widget Content(BuildContext context, RaceDetailRead race) {
-    ///    Provides content for a widget displaying race results
     return SingleChildScrollView(
         child: Center(
             child: SizedBox(
@@ -129,9 +122,6 @@ class _RaceResultsPageState extends State<RaceResultsPage> {
                       height: 128,
                     ),
 
-                    ///
-                    /// Headline text
-                    ///
                     Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Row(
@@ -171,9 +161,6 @@ class _RaceResultsPageState extends State<RaceResultsPage> {
                       height: 32,
                     ),
 
-                    ///
-                    /// Draggable list for adjusting places taken by riders
-                    ///
                     ReorderableListView(
                       shrinkWrap: true,
                       children: <Widget>[
@@ -341,9 +328,6 @@ class _RaceResultsPageState extends State<RaceResultsPage> {
                       height: 32,
                     ),
 
-                    ///
-                    /// Bonuses for bad weather conditions
-                    ///
                     Row(
                       children: [
                         Text(
@@ -459,7 +443,6 @@ class _RaceResultsPageState extends State<RaceResultsPage> {
   }
 
   Future<void> _confirmationDialogBuilder(BuildContext context, Future<void> Function() onConfirm) {
-    ///    Builds dialog box for confirming the race results by coordinator
     return showDialog<void>(
       context: context,
       builder: (BuildContext context) {

@@ -22,7 +22,6 @@ import '../util/network.dart';
 import '../util/settings.dart' as settings;
 
 class CreateRacePage extends StatefulWidget {
-  ///  Base class for making a widget for creating a new race event
   const CreateRacePage({Key? key}) : super(key: key);
 
   @override
@@ -30,7 +29,6 @@ class CreateRacePage extends StatefulWidget {
 }
 
 class _CreateRacePageState extends State<CreateRacePage> {
-  ///  Class for race creation page widget
   final nameEditingController = TextEditingController();
   final descriptionEditingController = TextEditingController();
   final requirementsEditingController = TextEditingController();
@@ -88,7 +86,6 @@ class _CreateRacePageState extends State<CreateRacePage> {
 
   @override
   Widget build(BuildContext context) {
-    ///    Build a race creation page widget
     return SingleChildScrollView(
       child: Center(
           child: SizedBox(
@@ -119,9 +116,6 @@ class _CreateRacePageState extends State<CreateRacePage> {
               key: _formKey,
               child: Column(
                 children: [
-                  ///
-                  /// Race title
-                  ///
                   TextFormField(
                       controller: nameEditingController,
                       style: Theme.of(context).textTheme.displaySmall,
@@ -136,9 +130,6 @@ class _CreateRacePageState extends State<CreateRacePage> {
                     height: 64,
                   ),
 
-                  ///
-                  /// Race event graphic
-                  ///
                   Card(
                     child: Column(
                       children: [
@@ -338,9 +329,6 @@ class _CreateRacePageState extends State<CreateRacePage> {
                   ),
                   SizedBox(height: 24.0),
 
-                  ///
-                  /// Race GPX track file
-                  ///
                   Align(
                     alignment: Alignment.topLeft,
                     child: Text(
@@ -505,9 +493,6 @@ class _CreateRacePageState extends State<CreateRacePage> {
                   ),
                   SizedBox(height: 8.0),
 
-                  ///
-                  /// Number of laps
-                  ///
                   Card(
                     child: Padding(
                       padding: EdgeInsets.all(16.0),
@@ -534,9 +519,6 @@ class _CreateRacePageState extends State<CreateRacePage> {
                   ),
                   SizedBox(height: 24.0),
 
-                  ///
-                  /// Date and time
-                  ///
                   Align(
                     alignment: Alignment.topLeft,
                     child: Text(
@@ -734,9 +716,6 @@ class _CreateRacePageState extends State<CreateRacePage> {
                   ),
                   SizedBox(height: 24.0),
 
-                  ///
-                  /// Scoring
-                  ///
                   Align(
                     alignment: Alignment.topLeft,
                     child: Text(
@@ -843,7 +822,6 @@ class _CreateRacePageState extends State<CreateRacePage> {
                           height: 8,
                         ),
                         Row(
-                          // mainAxisSize: MainAxisSize.min,
                           children: [
                             Flexible(
                               child: TextField(
@@ -886,9 +864,6 @@ class _CreateRacePageState extends State<CreateRacePage> {
                   ),
                   SizedBox(height: 24.0),
 
-                  ///
-                  /// Sponsors
-                  ///
                   Align(
                     alignment: Alignment.topLeft,
                     child: Text(
@@ -909,7 +884,6 @@ class _CreateRacePageState extends State<CreateRacePage> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Expanded(
-                                // constraints: BoxConstraints(maxWidth: 400),
                                 child: FittedBox(
                                     fit: BoxFit.cover,
                                     child: ClipRRect(
@@ -995,9 +969,6 @@ class _CreateRacePageState extends State<CreateRacePage> {
               height: 48,
             ),
 
-            ///
-            /// "Create race" button
-            ///
             SizedBox(
                 width: double.infinity,
                 height: 50,
@@ -1082,7 +1053,6 @@ class _CreateRacePageState extends State<CreateRacePage> {
   }
 
   void fitMap() {
-    ///    Fits the entire track in the window
     mapController.fitCamera(
       CameraFit.bounds(
           bounds: LatLngBounds.fromPoints(points.where((e) => e.lat != null && e.lon != null).map((e) => LatLng(e.lat!, e.lon!)).toList()),
@@ -1091,7 +1061,6 @@ class _CreateRacePageState extends State<CreateRacePage> {
   }
 
   Future<TimeOfDay?> _selectTime(BuildContext context, {String? hintText, TimeOfDay? initialTime}) async {
-    ///    Select time with dialog
     TimeOfDay selectedTime = initialTime ?? TimeOfDay.now();
     final TimeOfDay? picked_s = await showTimePicker(
         context: context,
@@ -1109,7 +1078,6 @@ class _CreateRacePageState extends State<CreateRacePage> {
   }
 
   Future<DateTime?> _selectDate(BuildContext context, {DateTime? initialDate}) async {
-    ///    Select date with dialog
     DateTime selectedDate = initialDate ?? DateTime.now();
     final DateTime? picked_s = await showDatePicker(
         firstDate: DateTime.now(),

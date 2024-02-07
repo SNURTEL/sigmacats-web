@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 class NumericStepButton extends StatefulWidget {
-  ///  This class is used to create a stateful widget for choosing numbers
   final int minValue;
   final int maxValue;
 
@@ -16,13 +15,11 @@ class NumericStepButton extends StatefulWidget {
 }
 
 class _NumericStepButtonState extends State<NumericStepButton> {
-  /// State class for number picker widget
 
   int counter = 1;
 
   @override
   Widget build(BuildContext context) {
-    ///    Builds number picker widget
 
     return Container(
       child: Row(

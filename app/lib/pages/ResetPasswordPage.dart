@@ -11,7 +11,6 @@ import '../util/settings.dart' as settings;
 import '../util/notification.dart';
 
 class ResetPasswordPage extends StatefulWidget {
-  ///  Base class for creating a password allowing user to reset the password after clicking link in an email
   final String token;
 
   const ResetPasswordPage(this.token, {Key? key}) : super(key: key);
@@ -21,7 +20,6 @@ class ResetPasswordPage extends StatefulWidget {
 }
 
 class _ResetPasswordPageState extends State<ResetPasswordPage> {
-  ///  Creates a widget that allows user to reset their password after clicking an email link
 
   final _formKey = GlobalKey<FormState>();
   final _password1EditingController = TextEditingController();
@@ -41,7 +39,6 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
 
   @override
   Widget build(BuildContext context) {
-    ///    Builds widget for password reset screen
     return Center(
         child: Scrollbar(
             child: SizedBox(

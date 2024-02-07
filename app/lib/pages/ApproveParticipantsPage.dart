@@ -12,7 +12,6 @@ import '../util/network.dart';
 import '../util/settings.dart' as settings;
 
 class ApproveParticipantsPage extends StatefulWidget {
-  ///  This class is used to create the basis of a page for approving participants
   final int id;
 
   const ApproveParticipantsPage(this.id, {Key? key}) : super(key: key);
@@ -22,7 +21,6 @@ class ApproveParticipantsPage extends StatefulWidget {
 }
 
 class _ApproveParticipantsPageState extends State<ApproveParticipantsPage> {
-  ///  This class defines states of a page for approving participants
   late Future<RaceDetailRead> futureRace;
   late List<RaceParticipationRead> participations;
 
@@ -35,7 +33,6 @@ class _ApproveParticipantsPageState extends State<ApproveParticipantsPage> {
   }
 
   Future<RaceDetailRead> fetchRace() async {
-    ///    Fetches races from server
     try {
       final response = await dio.get('${settings.apiBaseUrl}/api/coordinator/race/${widget.id}');
       final race = RaceDetailRead.fromMap(response.data);
@@ -52,19 +49,15 @@ class _ApproveParticipantsPageState extends State<ApproveParticipantsPage> {
 
   @override
   Widget build(BuildContext context) {
-    ///    Builds the widget for participant approval page
-    ///    Either the riders list or error screen
     return FutureBuilder(
       future: futureRace,
       builder: (context, snapshot) {
         late Widget content;
         if (snapshot.hasData) {
-          // regular page
           final race = snapshot.data!;
           if (race.status == RaceStatus.pending) {
             content = Content(context, race);
           } else {
-            // error page - race status other than `pending`
             content = Expanded(
               child: Center(
                 child: Column(
@@ -88,7 +81,6 @@ class _ApproveParticipantsPageState extends State<ApproveParticipantsPage> {
           log("Race fetch error: ", error: snapshot.error);
           content = Text('${snapshot.error}');
         } else {
-          // By default, show a loading spinner.
           content = const CircularProgressIndicator();
         }
 
@@ -98,7 +90,6 @@ class _ApproveParticipantsPageState extends State<ApproveParticipantsPage> {
   }
 
   Widget Content(BuildContext context, RaceDetailRead race) {
-    ///    Contains list of users to be accepted for a given race
     return SingleChildScrollView(
         child: Center(
             child: SizedBox(
@@ -142,9 +133,6 @@ class _ApproveParticipantsPageState extends State<ApproveParticipantsPage> {
                   SizedBox(
                     height: 32,
                   ),
-                  ///
-                  /// Actual rider list
-                  ///
                   ListView.builder(
                     shrinkWrap: true,
                     itemCount: participations.length,
@@ -259,7 +247,6 @@ class _ApproveParticipantsPageState extends State<ApproveParticipantsPage> {
                 ]))));
   }
 
-  /// Map participation statuses to tile colors
   final statusToColorMapping = {
     RaceParticipationStatus.pending: Colors.transparent,
     RaceParticipationStatus.approved: Colors.greenAccent.withOpacity(0.2),

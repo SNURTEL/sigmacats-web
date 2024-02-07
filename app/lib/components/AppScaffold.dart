@@ -9,7 +9,6 @@ import '../util/notification.dart';
 import '../util/settings.dart' as settings;
 
 class AppScaffold extends StatefulWidget {
-  ///  Base class for AppScaffold, a widget wrapper for displaying navigation and general information on web app for coordinator
   const AppScaffold({super.key, required this.child});
 
   final Widget child;
@@ -19,7 +18,6 @@ class AppScaffold extends StatefulWidget {
 }
 
 class _AppScaffoldState extends State<AppScaffold> {
-  ///  Widget for displaying navigation and general information on the web app for coordinator
   int selection = 0;
 
   late bool isShowingNavRail = MediaQuery.of(context).size.width > 600;
@@ -28,7 +26,6 @@ class _AppScaffoldState extends State<AppScaffold> {
 
   @override
   Widget build(BuildContext context) {
-    ///    Build the widget
     return Scaffold(
       appBar: AppBar(
         title: Text("Cześć!"),
